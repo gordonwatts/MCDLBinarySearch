@@ -49,9 +49,12 @@ void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mV
 	pythia.readString("35:onMode = off");     // Turn off all H_v decays
 	pythia.readString("35:onIfAll = 36 36");  // Turn back on H_v->pi_vpi_v
 
-	pythia.readString("35:m0 = 140");         // Set H_v mass
+	ostringstream mBosonMassString, mVPionMassString;
+	mBosonMassString << "35:m0 = " << mHiggs;
+	pythia.readString(mBosonMassString.str());         // Set H_v mass
 
-	pythia.readString("36:m0 = 20");          // Set pi_v mass
+	mVPionMassString << "36:m0 = " << mVPion;
+	pythia.readString(mVPionMassString.str());          // Set pi_v mass
 
 	ostringstream dlstring;
 	dlstring << "36:tau0 = " << lifetime;

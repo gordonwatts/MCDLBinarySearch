@@ -13,10 +13,10 @@ using namespace std;
 using namespace Pythia8;
 
 // Return the calc of the dl.
-double calc_it(TDirectory *dir, double dl)
+double calc_it(TDirectory *dir, double dl, double mBoson, double mVPion)
 {
 	Pythia pythia;
-	configHV(pythia, dl * 1000.0);
+	configHV(pythia, dl * 1000.0, mBoson, mVPion);
 	pythia.init();
 
 	runMC(dir, pythia, 5000);
@@ -61,8 +61,13 @@ double binary_search_dl(FuncCalc calc, double dlLow, double dlHigh, bool(*done)(
 
 int main()
 {
+	double mBoson = 126;
+	double mVPion = 20;
+
 	// The output file.
-	auto f = new TFile("../BinarySearch.root", "RECREATE");
+	ostringstream fname;
+	fname << "../BinarySearch_mB_" << mBoson << "_mVP_" << mVPion << ".root";
+	auto f = new TFile(fname.str().c_str(), "RECREATE");
 
 	// Run the search
 
@@ -70,7 +75,7 @@ int main()
 		ostringstream name;
 		name << "ctau_" << vpdl;
 		auto newdir = f->mkdir(name.str().c_str());
-		return calc_it(newdir, vpdl);
+		return calc_it(newdir, vpdl, mBoson, mVPion);
 	},
 		0.0, 5.0, dlDone);
 
