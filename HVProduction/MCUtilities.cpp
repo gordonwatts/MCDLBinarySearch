@@ -101,3 +101,19 @@ void runMC(TDirectory *plotoutput, Pythia8::Pythia &pythia, int nEvents)
 	// Clean up
 	pythia.stat();
 }
+
+// Get the ratio of the difference in overflow and underflow divided by teh total number.
+double ExtractDifferenceRatio(TDirectory *plotDir, const std::string &plotName)
+{
+	auto p = static_cast<TH1F*> (plotDir->Get(plotName.c_str()));
+	if (p == nullptr) {
+		throw runtime_error("Unable to extract a plot!");
+	}
+
+	double overflow = p->GetBinContent(p->GetNbinsX() + 1);
+	double underflow = p->GetBinContent(0);
+
+	if (overflow + underflow == 0)
+		return 0.0;
+	return (overflow - underflow) / (overflow + underflow);
+}
