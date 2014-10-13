@@ -6,6 +6,11 @@
 *.user
 *.sln.docstates
 
+root/
+*.root
+*.bat
+*.log
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
