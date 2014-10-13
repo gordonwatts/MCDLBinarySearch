@@ -4,6 +4,8 @@
 #include "TH1F.h"
 #include "TVector3.h"
 
+#include <sstream>
+
 void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mVPion)
 {
 	pythia.readString("Beams:eCM = 13000.");
@@ -50,7 +52,10 @@ void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mV
 	pythia.readString("35:m0 = 140");         // Set H_v mass
 
 	pythia.readString("36:m0 = 20");          // Set pi_v mass
-	pythia.readString("36:tau0 = 630");       // Set pi_v lifetime
+
+	ostringstream dlstring;
+	dlstring << "36:tau0 = " << lifetime;
+	pythia.readString(dlstring.str());       // Set pi_v lifetime
 }
 
 // Run 5000 events

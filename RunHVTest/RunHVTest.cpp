@@ -27,7 +27,7 @@ int main()
 
 	runMC(f, pythia, 5000);
 
-	cout << "Ratio is " << ExtractDifferenceRatio(f, "vpionProductionDL") << enndl;
+	cout << "Ratio is " << ExtractDifferenceRatio(f, "vpionProductionDL") << endl;
 
 	f->Write();
 	f->Close();
