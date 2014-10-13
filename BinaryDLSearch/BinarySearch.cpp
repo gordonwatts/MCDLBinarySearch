@@ -29,7 +29,7 @@ double calc_it(TDirectory *dir, double dl, double mBoson, double mVPion)
 // We are done when there is less than a 5% difference.
 bool dlDone(double ratio)
 {
-	return ratio < 0.05;
+	return fabs(ratio) < 0.05;
 }
 
 // Run a binary search of this.
@@ -59,14 +59,36 @@ double binary_search_dl(FuncCalc calc, double dlLow, double dlHigh, bool(*done)(
 	throw runtime_error("binary search did not convert!");
 }
 
-int main()
+double eatDouble(char *arglist[], int &index)
 {
-	double mBoson = 126;
+	index++;
+	istringstream input(arglist[index]);
+	double r;
+	input >> r;
+	return r;
+}
+
+int main(int argc, char *argv[])
+{
+	double mBoson = 140;
 	double mVPion = 20;
+
+	// Parse the arguments to see what we should set.
+	for (int i = 0; i < argc; i++) {
+		string a(argv[i]);
+		if (a == "-b") {
+			mBoson = eatDouble(argv, i);
+		}
+		else if (a == "-v") {
+			mVPion = eatDouble(argv, i);
+		}
+	}
+
+	cout << "Analyzing for mBoson=" << mBoson << " and mVPion=" << mVPion << endl;
 
 	// The output file.
 	ostringstream fname;
-	fname << "../BinarySearch_mB_" << mBoson << "_mVP_" << mVPion << ".root";
+	fname << "BinarySearch_mB_" << mBoson << "_mVP_" << mVPion << ".root";
 	auto f = new TFile(fname.str().c_str(), "RECREATE");
 
 	// Run the search
