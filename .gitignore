@@ -10,6 +10,7 @@ root/
 *.root
 *.bat
 *.log
+*.txt
 
 # Build results
 [Dd]ebug/
