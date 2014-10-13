@@ -6,6 +6,7 @@
 
 #include "TFile.h"
 #include "TH1F.h"
+#include "TVector3.h"
 
 #include <iostream>
 
@@ -66,19 +67,39 @@ int main()
 	pythia.init();
 
 	// Open a file, book histo
-	auto f = new TFile("../test.root", "RECREATE");
-	auto hCharged = new TH1F("nCharged", "# Of charged particles; N", 200, 0.0, -1.0);
+	auto f = new TFile("../RunHVTest.root", "RECREATE");
+	auto hNVPions = new TH1F("nVPions", "# Of VPions; N", 10, 0.0, 10.0);
+	auto hHVPionEta = new TH1F("vpionEta", "Eta of vpions ; \\eta", 50, -5.0, 5.0);
+	auto hHVPionPt = new TH1F("vpionPt", "p_{T} of vpions; p_{T} [GeV]", 100, 0.0, 200.0);
+	auto hHiggsProductionDL = new TH1F("higgsProductionDL", "2D Decay r for the Higgs; r [m]", 100, 0.0, 1.0);
+	auto hVPionDL = new TH1F("vpionProductionDL", "2D Decay r from 0,0,0 for v pions; r [m]", 100, 0.0, 20.0);
 
 	// Loop over events.
-	for (int iEvent = 0; iEvent < 1000; ++iEvent) {
+	for (int iEvent = 0; iEvent < 5000; ++iEvent) {
 		if (!pythia.next()) continue;
 
 		// Find number of all final charged particles and fill histogram.
 		int nCharged = 0;
-		for (int i = 0; i < pythia.event.size(); ++i)
-			if (pythia.event[i].isFinal() && pythia.event[i].isCharged())
-				++nCharged;
-		hCharged->Fill(nCharged);
+		int nVPions = 0;
+		for (int i = 0; i < pythia.event.size(); ++i) {
+			const auto &particle = pythia.event[i];
+
+			// Look at the v_pions
+			if (particle.id() == 36) {
+				++nVPions;
+				hHVPionEta->Fill(particle.eta());
+				hHVPionPt->Fill(particle.pT());
+
+				TVector3 rHiggs(particle.xProd(), particle.yProd(), particle.zProd());
+				hHiggsProductionDL->Fill(rHiggs.Perp()/1000.0);
+
+				TVector3 rVPion(particle.xDec(), particle.zDec(), particle.zDec());
+				hVPionDL->Fill(rVPion.Perp() / 1000.0);
+
+			}
+		}
+
+		hNVPions->Fill(nVPions);
 	}
 
 	// Clean up
