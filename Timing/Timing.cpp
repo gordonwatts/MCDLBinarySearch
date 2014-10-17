@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 	set<int> particlesToWatch;
 	particlesToWatch.insert(35);
-	particlesToWatch.insert(26);
+	particlesToWatch.insert(36);
 	
 	// Speed of light, meters per second
 	double c = 3.0E8;
@@ -130,9 +130,32 @@ int main(int argc, char *argv[])
 // Calc the beta of the particle
 double calcBeta(const Particle &p)
 {
-	return 1.0;
+	auto gamma = p.m()/p.m0();
+	return sqrt(1 - 1 / (gamma*gamma));
 }
 
-double calcPropTime(const Particle &p, double beta, double distToTravel) {
-	return 0.0;
+// Calc how long it takes a particle to get out to a certian distnace. Assume
+// it travesl at speed beta till it decays, and then beta of 1.
+double calcPropTime(const Particle &p, double beta, double distToTravel)
+{
+	// Calc the transverse decay location of the particle.
+	auto decayX = p.xDec();
+	auto decayY = p.yDec();
+	auto distDecay2 = decayX*decayX + decayY*decayY;
+
+	auto destToTravel2 = distToTravel*distToTravel;
+
+	// Will it decay before it gets to that distance? Then
+	// we can do this pretty easily. Remember units are ns!
+	double c = 3E8;
+	if (distDecay2 > destToTravel2) {
+		return beta * distToTravel / c * 1.0E9;
+	}
+
+	// We have to split this in two
+	auto distDecay = sqrt(distDecay2);
+	auto firstLegTime = beta * distDecay / c * 1.0E9;
+	auto secondLegTime = (distToTravel - distDecay) / c * 1.0E9;
+
+	return firstLegTime + secondLegTime;
 }
