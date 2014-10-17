@@ -61,7 +61,7 @@ void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mV
 	pythia.readString(dlstring.str());       // Set pi_v lifetime
 }
 
-// Run 5000 events
+// Run 5000 events, and produce defualt info
 void runMC(TDirectory *plotoutput, Pythia8::Pythia &pythia, int nEvents)
 {
 	auto hNVPions = new TH1F("nVPions", "# Of VPions; N", 10, 0.0, 10.0);
@@ -77,15 +77,12 @@ void runMC(TDirectory *plotoutput, Pythia8::Pythia &pythia, int nEvents)
 	auto hVPionDLFull = new TH1F("vpionProductionDLFull", "2D Decay r from 0,0,0 for v pions; r [m]", 100, 0.0, 40.0);
 	hVPionDLFull->SetDirectory(plotoutput);
 
-	// Loop over events.
-	for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
-		if (!pythia.next()) continue;
-
+	runMC(pythia, nEvents, [&](Pythia8::Pythia &p) {
 		// Find number of all final charged particles and fill histogram.
 		int nCharged = 0;
 		int nVPions = 0;
-		for (int i = 0; i < pythia.event.size(); ++i) {
-			const auto &particle = pythia.event[i];
+		for (int i = 0; i < p.event.size(); ++i) {
+			const auto &particle = p.event[i];
 
 			// Look at the v_pions
 			if (particle.id() == 36) {
@@ -99,16 +96,14 @@ void runMC(TDirectory *plotoutput, Pythia8::Pythia &pythia, int nEvents)
 				TVector3 rVPion(particle.xDec(), particle.zDec(), particle.zDec());
 				hVPionDLFull->Fill(rVPion.Perp() / 1000.0);
 				hVPionDL->Fill(rVPion.Perp() / 1000.0);
-
 			}
 		}
 
 		hNVPions->Fill(nVPions);
-	}
-
-	// Clean up
-	pythia.stat();
+	});
 }
+
+
 
 // Get the ratio of the difference in overflow and underflow divided by teh total number.
 double ExtractDifferenceRatio(TDirectory *plotDir, const std::string &plotName)
