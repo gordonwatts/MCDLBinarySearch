@@ -130,7 +130,11 @@ int main(int argc, char *argv[])
 // Calc the beta of the particle
 double calcBeta(const Particle &p)
 {
+	double m(p.m());
+	double m0(p.m0());
 	auto gamma = p.m()/p.m0();
+	auto pt(p.pT());
+	auto e(p.e());
 	return sqrt(1 - 1 / (gamma*gamma));
 }
 
