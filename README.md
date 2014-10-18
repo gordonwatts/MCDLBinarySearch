@@ -1,8 +1,11 @@
 MCDLBinarySearch
 ================
 
-Using Pythia8, and a basic Hidden Valley model, binary-search the parameter space to get spread the decay lengths
-out accross a region of 5cm to 15 cm.
+Using Pythia8, and a basic Hidden Valley model, a few short programs to explore parameter space in a few different ways.
+
+1. binary-search the parameter space to get spread the decay lengths out accross a region of 5cm to 15 m.
+2. Dump what particles the HV vally pion decays to
+3. Look at how the arrival time is affected by generation parameters (e.g. beta).
 
 Building
 ========
