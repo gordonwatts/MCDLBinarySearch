@@ -32,16 +32,38 @@ double eatDouble(char *arglist[], int &index)
 	return r;
 }
 
-struct hInfo {
-	TH1F *_delay;
-	TH1F *_beta;
+class hInfo {
+private:
+	TH1F *_betaFull;
+	TH1F *_betaPartial;
+	map<double, TH1F*> _delayByDist;
 
-	hInfo(int pid, double dist) {
+public:
+	hInfo(int pid, const vector<double> &dists) {
 		ostringstream name, title;
-		name << "p" << pid << "_d" << dist;
-		title << "Partile " << pid << " at distance " << dist << "m";
-		_delay = new TH1F((name.str() + "_delay").c_str(), (title.str() + " delay; t [ns]").c_str(), 100, -10.0, 10.0);
-		_beta = new TH1F((name.str() + "_beta").c_str(), (title.str() + " Beta; \\beta").c_str(), 100, 0.5, 1.0);
+
+		// Do the main particle guys
+		name << "p" << pid;
+		title << "Partile " << pid;
+		_betaPartial = new TH1F((string("beta_") + name.str() + "_full").c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.5, 1.00001);
+		_betaFull = new TH1F((string("beta_") + name.str() + "_full").c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.0, 1.00001);
+
+		// And now the delay at each step along the way
+		for (auto d : dists) {
+			ostringstream dname, dtitle;
+			dname << "delay_p" << pid << "_at_" << d << "m";
+			dtitle << "Delay in ns for partile " << pid << " to reach " << d << "m; time [ns]";
+			_delayByDist[d] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 100, -10.0, 10.0);
+		}
+	}
+
+	void FillBeta(double beta) {
+		_betaFull->Fill(beta);
+		_betaPartial->Fill(beta);
+	}
+
+	void FillDelay(double dist, double delay) {
+		_delayByDist[dist]->Fill(delay);
 	}
 };
 
@@ -75,21 +97,15 @@ int main(int argc, char *argv[])
 	distances.push_back(4.0);
 
 	set<int> particlesToWatch;
-	particlesToWatch.insert(35);
 	particlesToWatch.insert(36);
 	
 	// Speed of light, meters per second
 	double c = 3.0E8;
 
 	// Init the histograms to track this. Units of nanoseconds.
-	map<int, map<double, hInfo*>> delayHistogram;
+	map<int, hInfo*> delayHistogram;
 	for (auto p : particlesToWatch) {
-		for (auto d : distances) {
-			ostringstream name;
-			name << "p" << p << "_dist" << d;
-			auto nameClean = name.str();
-			delayHistogram[p][d] = new hInfo(p, d);
-		}
+		delayHistogram[p] = new hInfo(p, distances);
 	}
 
 
@@ -107,15 +123,16 @@ int main(int argc, char *argv[])
 
 				// We care only about relatively central particles
 				if (fabs(p.eta()) < 2.5) {
+					auto beta = calcBeta(p);
+					delayHistogram[p.id()]->FillBeta(beta);
 					for (auto d : distances) {
-						auto beta = calcBeta(p);
+
+						// Calc the delta in time of arrival off of a beta 1 particle. Time is positive if it arrives *LATE*
+						// (which is how it is in the reconstruction).
 						auto betaTime = calcPropTime(p, beta, d);
-
-						auto beta1Time = d / c;
-
+						auto beta1Time = d / c * 1.0E9;
 						auto delta = betaTime - beta1Time;
-						delayHistogram[p.id()][d]->_delay->Fill(delta);
-						delayHistogram[p.id()][d]->_beta->Fill(beta);
+						delayHistogram[p.id()]->FillDelay(d, delta);
 					}
 				}
 			}
@@ -133,8 +150,6 @@ double calcBeta(const Particle &p)
 	double m(p.m());
 	double m0(p.m0());
 	auto gamma = p.m()/p.m0();
-	auto pt(p.pT());
-	auto e(p.e());
 	return sqrt(1 - 1 / (gamma*gamma));
 }
 
@@ -143,8 +158,9 @@ double calcBeta(const Particle &p)
 double calcPropTime(const Particle &p, double beta, double distToTravel)
 {
 	// Calc the transverse decay location of the particle.
-	auto decayX = p.xDec();
-	auto decayY = p.yDec();
+	// Put everything in units of m
+	auto decayX = p.xDec() / 1000.0;
+	auto decayY = p.yDec() / 1000.0;
 	auto distDecay2 = decayX*decayX + decayY*decayY;
 
 	auto destToTravel2 = distToTravel*distToTravel;
@@ -153,12 +169,12 @@ double calcPropTime(const Particle &p, double beta, double distToTravel)
 	// we can do this pretty easily. Remember units are ns!
 	double c = 3E8;
 	if (distDecay2 > destToTravel2) {
-		return beta * distToTravel / c * 1.0E9;
+		return distToTravel / (beta*c) * 1.0E9;
 	}
 
 	// We have to split this in two
 	auto distDecay = sqrt(distDecay2);
-	auto firstLegTime = beta * distDecay / c * 1.0E9;
+	auto firstLegTime = distDecay / (beta * c) * 1.0E9;
 	auto secondLegTime = (distToTravel - distDecay) / c * 1.0E9;
 
 	return firstLegTime + secondLegTime;
