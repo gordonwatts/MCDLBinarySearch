@@ -46,7 +46,7 @@ public:
 		// Do the main particle guys
 		name << "p" << pid;
 		title << "Partile " << pid;
-		_betaPartial = new TH1F((string("beta_") + name.str() + "_full").c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.5, 1.00001);
+		_betaPartial = new TH1F((string("beta_") + name.str()).c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.5, 1.00001);
 		_betaFull = new TH1F((string("beta_") + name.str() + "_full").c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.0, 1.00001);
 
 		// And now the delay at each step along the way
@@ -94,8 +94,10 @@ int main(int argc, char *argv[])
 	// The distances we are interested in and the particles we are interested in.
 	// Distances are in meters.
 	vector<double> distances;
-	distances.push_back(3.0);
-	distances.push_back(4.0);
+	distances.push_back(1.5);
+	distances.push_back(2.0);
+	distances.push_back(2.25);
+	distances.push_back(4.25);
 
 	set<int> particlesToWatch;
 	particlesToWatch.insert(36);
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
 	configHV(pythia, 1.5 * 1000.0, mBoson, mVPion);
 	pythia.init();
 
-	runMC(pythia, 500, [&](Pythia &pythiaInfo) {
+	runMC(pythia, 5000, [&](Pythia &pythiaInfo) {
 		for (int index = 0; index < pythiaInfo.event.size(); index++) {
 			const auto &p(pythiaInfo.event[index]);
 
