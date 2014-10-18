@@ -22,6 +22,7 @@ using namespace Pythia8;
 // to a certian radius out.
 double calcPropTime(const Particle &p, double beta, double distToTravel);
 double calcBeta(const Particle &p);
+double decayTransverseLength(const Particle &p);
 
 double eatDouble(char *arglist[], int &index)
 {
@@ -125,14 +126,19 @@ int main(int argc, char *argv[])
 				if (fabs(p.eta()) < 2.5) {
 					auto beta = calcBeta(p);
 					delayHistogram[p.id()]->FillBeta(beta);
+					auto pTransverseDecay = decayTransverseLength(p);
 					for (auto d : distances) {
 
-						// Calc the delta in time of arrival off of a beta 1 particle. Time is positive if it arrives *LATE*
-						// (which is how it is in the reconstruction).
-						auto betaTime = calcPropTime(p, beta, d);
-						auto beta1Time = d / c * 1.0E9;
-						auto delta = betaTime - beta1Time;
-						delayHistogram[p.id()]->FillDelay(d, delta);
+						// Ignore the particle if it won't decay before it hits this point.
+						if (d >= pTransverseDecay) {
+
+							// Calc the delta in time of arrival off of a beta 1 particle. Time is positive if it arrives *LATE*
+							// (which is how it is in the reconstruction).
+							auto betaTime = calcPropTime(p, beta, d);
+							auto beta1Time = d / c * 1.0E9;
+							auto delta = betaTime - beta1Time;
+							delayHistogram[p.id()]->FillDelay(d, delta);
+						}
 					}
 				}
 			}
@@ -153,15 +159,29 @@ double calcBeta(const Particle &p)
 	return sqrt(1 - 1 / (gamma*gamma));
 }
 
+// Calc the transverse distance from the origin to the decay ^2.
+double decayTransverseLength2(const Particle &p)
+{
+	// Calc the transverse decay location of the particle.
+	// Put everything in units of m
+	auto decayX = p.xDec() / 1000.0;
+	auto decayY = p.yDec() / 1000.0;
+	return decayX*decayX + decayY*decayY;
+}
+
+// Calc the transverse distance from the orgin to the decay.
+double decayTransverseLength(const Particle &p)
+{
+	return sqrt(decayTransverseLength2(p));
+}
+
 // Calc how long it takes a particle to get out to a certian distnace. Assume
 // it travesl at speed beta till it decays, and then beta of 1.
 double calcPropTime(const Particle &p, double beta, double distToTravel)
 {
 	// Calc the transverse decay location of the particle.
 	// Put everything in units of m
-	auto decayX = p.xDec() / 1000.0;
-	auto decayY = p.yDec() / 1000.0;
-	auto distDecay2 = decayX*decayX + decayY*decayY;
+	auto distDecay2 = decayTransverseLength2(p);
 
 	auto destToTravel2 = distToTravel*distToTravel;
 
