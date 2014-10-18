@@ -1,22 +1,36 @@
-﻿set-alias dl .\Release\BinaryDLSearch.exe
+﻿Param(
+  [switch]$BinarySearch,
+  [switch]$Timing
+)
+
+$exe = @()
+if ($BinarySearch) {
+  $exe += "BinaryDLSearch"
+}
+if ($Timing) {
+  $exe += "Timing"
+}
+
+# Run 1 masses
+$masses = @( `
+	@(100, @(10, 25)),
+	@(126, @(10, 25, 40)),
+	@(140, @(10, 20, 40)),
+	@(300, @(50)),
+	@(600, @(50, 150)),
+	@(900, @(50, 150))
+	)
+
+# Configure everything
 $env:PYTHIA8DATA=".\Release\Pythia8Data"
 $env:PATH="$env:PATH;c:\root\bin"
 
-dl -b 100 -v 10 | Out-File b100_m10_log.txt
-dl -b 100 -v 25 | Out-File b100_m25_log.txt
-
-dl -b 126 -v 10 | Out-File b126_m10_log.txt
-dl -b 126 -v 25 | Out-File b126_m25_log.txt
-dl -b 126 -v 40 | Out-File b126_m40_log.txt
-
-dl -b 140 -v 10 | Out-File b140_m10_log.txt
-dl -b 140 -v 20 | Out-File b140_m20_log.txt
-dl -b 140 -v 40 | Out-File b140_m40_log.txt
-
-dl -b 300 -v 50 | Out-File b300_m50_log.txt
-
-dl -b 600 -v 50 | Out-File b600_m50_log.txt
-dl -b 600 -v 150 | Out-File b600_m150_log.txt
-
-dl -b 900 -v 50 | Out-File b900_m50_log.txt
-dl -b 900 -v 150 | Out-File b900_m150_log.txt
+foreach ($e in $exe) {
+	foreach ($m in $masses) {
+		$bosonMass = $m[0]
+		foreach ($vpionMass in $m[1]) {
+			Write-Host "Running mPhi = $bosonMass and mVpion = $vpionMass"
+			& ".\Release\$e.exe" -b $bosonMass -v $vpionMass | Out-File "$e-b$bosonMass-m$vpionMass.txt"
+		}
+	}
+}
