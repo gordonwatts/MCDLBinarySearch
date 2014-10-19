@@ -21,6 +21,9 @@
     <ClInclude Include="MCUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PlotUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MCUtilities.cpp">

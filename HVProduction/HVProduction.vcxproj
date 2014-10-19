@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MCUtilities.h" />
+    <ClInclude Include="PlotUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
