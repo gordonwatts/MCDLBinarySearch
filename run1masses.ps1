@@ -29,8 +29,20 @@ foreach ($e in $exe) {
 	foreach ($m in $masses) {
 		$bosonMass = $m[0]
 		foreach ($vpionMass in $m[1]) {
-			Write-Host "Running mPhi = $bosonMass and mVpion = $vpionMass"
-			& ".\Release\$e.exe" -b $bosonMass -v $vpionMass | Out-File "$e-b$bosonMass-m$vpionMass.txt"
+			$runJob = {
+				param ($mPhi, $mVPion, $e, $dir)
+				set-location $dir
+				Write-Host "Running mPhi = $mPhi and mVpion = $mVPion"
+				Write-Host " -> Running in $(pwd)"
+				& ".\Release\$e.exe" -b $mPhi -v $mVPion | Out-File "$e-$mPhi-$mVPion.txt"
+			}
+			Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$e,$(pwd).Path
 		}
 	}
 }
+
+# Wait for them to all finish...
+get-job | wait-job
+
+# Getting the information back from the jobs
+Get-Job | Receive-Job
