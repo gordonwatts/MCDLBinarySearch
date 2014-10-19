@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 {
 	double mBoson = 140;
 	double mVPion = 20;
+	double beamCM = 1300.0;
 
 	// Parse the arguments to see what we should set.
 	for (int i = 0; i < argc; i++) {
@@ -81,6 +82,9 @@ int main(int argc, char *argv[])
 		}
 		else if (a == "-v") {
 			mVPion = eatDouble(argv, i);
+		}
+		else if (a == "-beam") {
+			beamCM = eatDouble(argv, i);
 		}
 	}
 
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
 
 	// Setup the MC
 	Pythia pythia;
-	configHV(pythia, 1.5 * 1000.0, mBoson, mVPion);
+	configHV(pythia, 1.5 * 1000.0, mBoson, mVPion, beamCM);
 	pythia.init();
 
 	runMC(pythia, 5000, [&](Pythia &pythiaInfo) {

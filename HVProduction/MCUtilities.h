@@ -9,7 +9,7 @@
 #include <string>
 
 // Configure to run the HV
-void configHV(Pythia8::Pythia &pythia, double lifetime = 630, double mHiggs = 126, double mVPion = 20);
+void configHV(Pythia8::Pythia &pythia, double lifetime = 630, double mHiggs = 126, double mVPion = 20, double beamCOM = 13000);
 
 // Run some number of events, an dmake plots...
 void runMC(TDirectory *plotoutput, Pythia8::Pythia &pythia, int nEvents = 5000);

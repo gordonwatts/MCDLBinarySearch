@@ -1,6 +1,7 @@
 ﻿Param(
   [switch]$BinarySearch,
-  [switch]$Timing
+  [switch]$Timing,
+  [switch]$8TeV
 )
 
 $exe = @()
@@ -9,6 +10,10 @@ if ($BinarySearch) {
 }
 if ($Timing) {
   $exe += "Timing"
+}
+$beamCM = 13000.0
+if ($8TeV) {
+	$beamCM = 8000.0
 }
 
 # Run 1 masses
@@ -30,13 +35,13 @@ foreach ($e in $exe) {
 		$bosonMass = $m[0]
 		foreach ($vpionMass in $m[1]) {
 			$runJob = {
-				param ($mPhi, $mVPion, $e, $dir)
+				param ($mPhi, $mVPion, $beamCM, $e, $dir)
 				set-location $dir
 				Write-Host "Running mPhi = $mPhi and mVpion = $mVPion"
 				Write-Host " -> Running in $(pwd)"
-				& ".\Release\$e.exe" -b $mPhi -v $mVPion | Out-File "$e-$mPhi-$mVPion.txt"
+				& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM | Out-File "$e-$mPhi-$mVPion.txt"
 			}
-			Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$e,$(pwd).Path
+			Start-Job $runJob -ArgumentList $bosonMass,$vpionMass, $beamCM,$e,$(pwd).Path
 		}
 	}
 }

@@ -6,11 +6,11 @@
 
 #include <sstream>
 
-void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mVPion)
+void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mVPion, double beamCOM)
 {
-	pythia.readString("Beams:eCM = 13000.");
-	//pythia.readString("HardQCD:all = on");
-	//pythia.readString("PhaseSpace:pTHatMin = 20.");
+	ostringstream eCM;
+	eCM << "Beams:eCM = " << beamCOM;
+	pythia.readString(eCM.str());
 
 	// Pythia8_Base_Fragment
 
