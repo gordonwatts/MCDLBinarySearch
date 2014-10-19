@@ -37,7 +37,7 @@ foreach ($e in $exe) {
 				set-location $dir
 				Write-Host "Running mPhi = $mPhi and mVpion = $mVPion at sqrt(s) = $beamCM"
 				$tev = $beamCM/1000.0
-				& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM | Out-File "$e_mB_$mPhi_mVP_$mVPion_${tev}TeV.txt"
+				& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_${tev}TeV.txt"
 			}
 			Start-Job $runJob -ArgumentList $bosonMass,$vpionMass, $beamCM,$e,$(pwd).Path
 		}
