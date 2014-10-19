@@ -1,6 +1,7 @@
 ﻿Param(
   [double]$beamCM = 13.0,
   [switch]$BinarySearch,
+  [switch]$DecayProducts,
   [switch]$Timing
 )
 
@@ -11,6 +12,9 @@ if ($BinarySearch) {
 }
 if ($Timing) {
   $exe += "Timing"
+}
+if ($DecayProducts) {
+  $exe += "DecayProducts"
 }
 $beamCM = $beamCM * 1000.0
 
