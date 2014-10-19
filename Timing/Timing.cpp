@@ -14,6 +14,7 @@
 
 #include "TFile.h"
 #include "TH1F.h"
+#include "TLorentzVector.h"
 
 using namespace std;
 using namespace Pythia8;
@@ -163,10 +164,9 @@ int main(int argc, char *argv[])
 // Calc the beta of the particle
 double calcBeta(const Particle &p)
 {
-	double m(p.m());
-	double m0(p.m0());
-	auto gamma = p.m()/p.m0();
-	return sqrt(1 - 1 / (gamma*gamma));
+	TLorentzVector v;
+	v.SetPtEtaPhiE(p.pT(), p.eta(), p.phi(), p.e());
+	return v.Beta();
 }
 
 // Calc the transverse distance from the origin to the decay ^2.
