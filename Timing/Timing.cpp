@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	double beamCM = 1300.0;
 
 	// Parse the arguments to see what we should set.
-	for (int i = 0; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		string a(argv[i]);
 		if (a == "-b") {
 			mBoson = eatDouble(argv, i);
@@ -86,13 +86,17 @@ int main(int argc, char *argv[])
 		else if (a == "-beam") {
 			beamCM = eatDouble(argv, i);
 		}
+		else {
+			cout << "Unknown switch " << a << endl;
+			return 0;
+		}
 	}
 
-	cout << "Analyzing for mBoson=" << mBoson << " and mVPion=" << mVPion << endl;
+	cout << "Analyzing for mBoson=" << mBoson << " and mVPion=" << mVPion << " at sqrt(s)=" << beamCM << endl;
 
 	// The output file.
 	ostringstream fname;
-	fname << "Timing_mB_" << mBoson << "_mVP_" << mVPion << ".root";
+	fname << "Timing_mB_" << mBoson << "_mVP_" << mVPion << "_" << beamCM / 1000.0 << "TeV.root";
 	auto f = new TFile(fname.str().c_str(), "RECREATE");
 
 	// The distances we are interested in and the particles we are interested in.
