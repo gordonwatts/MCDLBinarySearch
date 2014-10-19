@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	configHV(pythia, 1.5 * 1000.0, mBoson, mVPion);
 	pythia.init();
 
-	runMC(pythia, 500, [&](Pythia &pythiaInfo) {
+	runMC(pythia, 5000, [&](Pythia &pythiaInfo) {
 		for (int index = 0; index < pythiaInfo.event.size(); index++) {
 			const auto &p(pythiaInfo.event[index]);
 
