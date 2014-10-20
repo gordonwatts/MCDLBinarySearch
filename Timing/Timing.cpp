@@ -56,7 +56,7 @@ public:
 			ostringstream dname, dtitle;
 			dname << "delay_p" << pid << "_at_" << d << "m";
 			dtitle << "Delay in ns for partile " << pid << " to reach " << d << "m; time [ns]";
-			_delayByDist[d] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 100, -10.0, 10.0);
+			_delayByDist[d] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 1000, -10.0, 100.0);
 		}
 	}
 
