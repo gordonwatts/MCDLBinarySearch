@@ -13,6 +13,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandUtils.h" />
     <ClInclude Include="MCUtilities.h" />
     <ClInclude Include="PlotUtils.h" />
   </ItemGroup>
@@ -20,6 +21,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CommandUtils.cpp" />
     <ClCompile Include="MCUtilities.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

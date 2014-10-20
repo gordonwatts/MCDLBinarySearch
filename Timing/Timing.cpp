@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "MCUtilities.h"
+#include "CommandUtils.h"
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -71,34 +72,13 @@ public:
 
 int main(int argc, char *argv[])
 {
-	double mBoson = 140;
-	double mVPion = 20;
-	double beamCM = 1300.0;
+	Pythia pythia;
+	auto cfg = configHV(pythia, argv, argc);
 
-	// Parse the arguments to see what we should set.
-	for (int i = 1; i < argc; i++) {
-		string a(argv[i]);
-		if (a == "-b") {
-			mBoson = eatDouble(argv, i);
-		}
-		else if (a == "-v") {
-			mVPion = eatDouble(argv, i);
-		}
-		else if (a == "-beam") {
-			beamCM = eatDouble(argv, i);
-		}
-		else {
-			cout << "Unknown switch " << a << endl;
-			return 0;
-		}
-	}
-
-	cout << "Analyzing for mBoson=" << mBoson << " and mVPion=" << mVPion << " at sqrt(s)=" << beamCM << endl;
+	cout << "Analyzing " << cfg << endl;
 
 	// The output file.
-	ostringstream fname;
-	fname << "Timing_mB_" << mBoson << "_mVP_" << mVPion << "_" << beamCM / 1000.0 << "TeV.root";
-	auto f = new TFile(fname.str().c_str(), "RECREATE");
+	auto f = openROOTFile("Timing", cfg);
 
 	// The distances we are interested in and the particles we are interested in.
 	// Distances are in meters.
@@ -120,10 +100,7 @@ int main(int argc, char *argv[])
 		delayHistogram[p] = new hInfo(p, distances);
 	}
 
-
-	// Setup the MC
-	Pythia pythia;
-	configHV(pythia, 1.5 * 1000.0, mBoson, mVPion, beamCM);
+	// Run the MC!
 	pythia.init();
 
 	runMC(pythia, 5000, [&](Pythia &pythiaInfo) {
