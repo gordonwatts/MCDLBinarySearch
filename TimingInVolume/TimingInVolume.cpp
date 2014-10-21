@@ -63,6 +63,7 @@ private:
 	map<volume, TH1F*> _delayByDist;
 	map<volume, TH1F*> _betaOK;
 	map<volume, TH1F*> _betaOK5ns;
+	map<volume, TH1F*> _betaOK10ns;
 
 public:
 	hInfo(int pid, const vector<volume> &volumes) {
@@ -86,6 +87,7 @@ public:
 			btitle << "Beta for particle " << pid << " if it reached " << v << "m; \\beta";
 			_betaOK[v] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 			_betaOK5ns[v] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
+			_betaOK10ns[v] = new TH1F((bname.str() + "_10ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 		}
 	}
 
@@ -100,13 +102,13 @@ public:
 		}
 		_delayByDist[v]->Fill(delay);
 	}
-	void FillBetaGood(volume v, double beta, bool delayLessThan5ns) {
+	void FillBetaGood(volume v, double beta, double decayTime) {
 		_betaOK[v]->Fill(beta);
-		if (delayLessThan5ns) {
-			if (_delayByDist.find(v) == _delayByDist.end()) {
-				throw runtime_error("Couldn't find the volume!");
-			}
+		if (decayTime < 5.0) {
 			_betaOK5ns[v]->Fill(beta);
+		}
+		if (decayTime < 10.0) {
+			_betaOK10ns[v]->Fill(beta);
 		}
 	}
 };
@@ -167,7 +169,7 @@ int main(int argc, char *argv[])
 							auto betaTime = beta1Time / beta;
 							auto delta = betaTime - beta1Time;
 							delayHistogram[p.id()]->FillDelay(v, delta);
-							delayHistogram[p.id()]->FillBetaGood(v, beta, delta < 5.0);
+							delayHistogram[p.id()]->FillBetaGood(v, beta, delta);
 						}
 					}
 				}

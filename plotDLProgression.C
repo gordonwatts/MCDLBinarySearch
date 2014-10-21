@@ -6,19 +6,19 @@ double sumBins (TH1F*p, double edge)
 }
 
 int tev = 13;
-int mboson = 900;
-int mvpion = 50;
+int mboson = 140;
+int mvpion = 40;
 
 TString getFilename(int ctau)
 {
 	TString r;
-	r.Form("Timing_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
+	r.Form("TimingInVolume_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
 	return r;
 }
 
 TH1F* getPlot (TDirectory *d, int color)
 {
-	char *pname = "delay_p36_at_4.25m";	
+	char *pname = "delay_p36_at_ecalhcal2in_4outm";	
 	TH1F *p1 = (TH1F*) d->Get(pname);
 	p1->SetStats(0);
 	
