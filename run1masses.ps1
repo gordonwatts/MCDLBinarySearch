@@ -4,10 +4,12 @@
   [double]$VPionMass = 40,
   [string]$DecayLengthScan = "",
   [double]$DecayLength = 1.5,
+  [int]$nEvents = 5000,
   [switch]$BinarySearch,
   [switch]$DecayProducts,
   [switch]$Timing,
-  [switch]$Run1Masses
+  [switch]$Run1Masses,
+  [switch]$NoWait
 )
 
 # Parse the command line switches
@@ -67,21 +69,26 @@ foreach ($e in $exe) {
 			foreach ($ctau in $decayLengths) {
 				foreach ($vpionMass in $m[1]) {
 					$runJob = {
-						param ($mPhi, $mVPion, $ctau, $beamCM, $e, $dir)
+						param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir)
+						[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
 						set-location $dir
 						Write-Host "Running mPhi = $mPhi and mVpion = $mVPion at sqrt(s) = $beamCM"
-						& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_ctau_${ctau}_${beamCM}TeV.txt"
+						& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_ctau_${ctau}_${beamCM}TeV.txt"
 					}
-					$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$(pwd).Path
+					$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
 				}
 			}
 		}
 	}
 }
 
-# Wait for them to all finish...
-$jobs | wait-job
+if (! $NoWait) {
+	# Wait for them to all finish...
+	$jobs | wait-job
 
-# Getting the information back from the jobs
-$jobs | Receive-Job
-$jobs | remove-job
+	# Getting the information back from the jobs
+	$jobs | Receive-Job
+	$jobs | remove-job
+} else {
+	return $jobs
+}

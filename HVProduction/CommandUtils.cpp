@@ -9,12 +9,13 @@
 using namespace Pythia8;
 
 namespace {
-	// Parse a double off the command line.
-	double eatDouble(char *arglist[], int &index)
+	// Gobble up some simple command variable, as long as there is a nice iostream operator for it!
+	template<typename T>
+	T eat(char *arglist[], int &index)
 	{
 		index++;
 		istringstream input(arglist[index]);
-		double r;
+		T r;
 		input >> r;
 		return r;
 	}
@@ -29,21 +30,25 @@ PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
 	config._massVPion = 40;
 	config._ctau = 1.5;
 	config._beamCOM = 13;
+	config._nEvents = 5000;
 
 	// Parse the arguments to see what we should set.
 	for (int i = 1; i < argc; i++) {
 		string a(argv[i]);
 		if (a == "-b") {
-			config._massBoson = eatDouble(argv, i);
+			config._massBoson = eat<double>(argv, i);
 		}
 		else if (a == "-v") {
-			config._massVPion = eatDouble(argv, i);
+			config._massVPion = eat<double>(argv, i);
 		}
 		else if (a == "-beam") {
-			config._beamCOM = eatDouble(argv, i);
+			config._beamCOM = eat<double>(argv, i);
 		}
 		else if (a == "-dl") {
-			config._ctau = eatDouble(argv, i);
+			config._ctau = eat<double>(argv, i);
+		}
+		else if (a == "-n") {
+			config._nEvents = eat<int>(argv, i);
 		}
 		else {
 			cout << "unknown command line option: " << a << endl;

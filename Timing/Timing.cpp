@@ -40,6 +40,8 @@ private:
 	TH1F *_betaFull;
 	TH1F *_betaPartial;
 	map<double, TH1F*> _delayByDist;
+	map<double, TH1F*> _betaOK;
+	map<double, TH1F*> _betaOK5ns;
 
 public:
 	hInfo(int pid, const vector<double> &dists) {
@@ -55,8 +57,14 @@ public:
 		for (auto d : dists) {
 			ostringstream dname, dtitle;
 			dname << "delay_p" << pid << "_at_" << d << "m";
-			dtitle << "Delay in ns for partile " << pid << " to reach " << d << "m; time [ns]";
-			_delayByDist[d] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 1000, -10.0, 100.0);
+			dtitle << "Delay in ns for particle " << pid << " to reach " << d << "m; time [ns]";
+			_delayByDist[d] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 40, -10.0, 10.0);
+
+			ostringstream bname, btitle;
+			bname << "beta_p" << pid << "_at_" << d << "m";
+			btitle << "Beta for particle " << pid << " if it reached " << d << "m; \\beta";
+			_betaOK[d] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
+			_betaOK5ns[d] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 		}
 	}
 
@@ -67,6 +75,12 @@ public:
 
 	void FillDelay(double dist, double delay) {
 		_delayByDist[dist]->Fill(delay);
+	}
+	void FillBetaGood(double dist, double beta, bool delayLessThan5ns) {
+		_betaOK[dist]->Fill(beta);
+		if (delayLessThan5ns) {
+			_betaOK5ns[dist]->Fill(beta);
+		}
 	}
 };
 
@@ -103,7 +117,7 @@ int main(int argc, char *argv[])
 	// Run the MC!
 	pythia.init();
 
-	runMC(pythia, 5000, [&](Pythia &pythiaInfo) {
+	runMC(pythia, cfg._nEvents, [&](Pythia &pythiaInfo) {
 		for (int index = 0; index < pythiaInfo.event.size(); index++) {
 			const auto &p(pythiaInfo.event[index]);
 
@@ -126,6 +140,7 @@ int main(int argc, char *argv[])
 							auto beta1Time = d / c * 1.0E9;
 							auto delta = betaTime - beta1Time;
 							delayHistogram[p.id()]->FillDelay(d, delta);
+							delayHistogram[p.id()]->FillBetaGood(d, beta, delta < 5.0);
 						}
 					}
 				}

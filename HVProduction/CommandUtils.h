@@ -19,6 +19,9 @@ struct PythiaConfigInfo {
 
 	// Beam COM in TeV
 	double _beamCOM;
+
+	// # of events to run
+	int _nEvents;
 };
 
 std::ostream &operator<< (std::ostream &output, const PythiaConfigInfo &info);
