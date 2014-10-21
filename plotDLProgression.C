@@ -6,14 +6,28 @@ double sumBins (TH1F*p, double edge)
 }
 
 int tev = 13;
-int mboson = 140;
-int mvpion = 40;
+int mboson = 900;
+int mvpion = 50;
 
 TString getFilename(int ctau)
 {
 	TString r;
 	r.Form("Timing_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
 	return r;
+}
+
+TH1F* getPlot (TDirectory *d, int color)
+{
+	char *pname = "delay_p36_at_4.25m";	
+	TH1F *p1 = (TH1F*) d->Get(pname);
+	p1->SetStats(0);
+	
+	p1->SetTitle ("Delay in ns for a particle to reach r=4.25 m");
+	p1->SetLineWidth(2);
+	p1->Scale(1.0/p1->GetEntries());
+	p1->SetLineColor(color);
+	cout << "Fraction > 5 ns (" << d->GetName() << "): " << sumBins(p1, 5.0) << endl;
+	return p1;
 }
 
 void plotDLProgression ()
@@ -30,92 +44,21 @@ void plotDLProgression ()
 	TFile *f36 = TFile::Open(getFilename(36));
 	TFile *f41 = TFile::Open(getFilename(41));
 	TFile *f46 = TFile::Open(getFilename(46));
-	
-	char *pname = "delay_p36_at_4.25m";
-	
-	TH1F *p1 = (TH1F*) f1->Get(pname);
-	TH1F *p6 = (TH1F*) f6->Get(pname);
-	TH1F *p11 = (TH1F*) f11->Get(pname);
-	TH1F *p16 = (TH1F*) f16->Get(pname);
-	TH1F *p21 = (TH1F*) f21->Get(pname);
-	TH1F *p26 = (TH1F*) f26->Get(pname);
-	TH1F *p31 = (TH1F*) f31->Get(pname);
-	TH1F *p36 = (TH1F*) f36->Get(pname);
-	TH1F *p41 = (TH1F*) f41->Get(pname);
-	TH1F *p46 = (TH1F*) f46->Get(pname);
-	
-	int nRebin = 1;
-	
-	p1->SetStats(0);
-	p1->SetTitle ("Delay in ns for a particle to reach r=4.25 m");
-	p1->SetLineWidth(2);
-	p1->Scale(1.0/p1->GetEntries());
-	p1->SetLineColor(kBlack);
-	p1->Rebin(nRebin);
-	cout << "Fraction > 5 ns (1m): " << sumBins(p1, 5.0) << endl;
-	
-	p6->SetStats(0);
-	p6->SetLineWidth(2);
-	p6->Scale(1.0/p6->GetEntries());
-	p6->SetLineColor(kBlack);
-	p6->Rebin(nRebin);
-	cout << "Fraction > 5 ns (6m): " << sumBins(p6, 5.0) << endl;
+	TFile *f51 = TFile::Open(getFilename(51));
+	TFile *f56 = TFile::Open(getFilename(56));
 
-	p11->SetStats(0);
-	p11->SetLineWidth(2);
-	p11->Scale(1.0/p11->GetEntries());
-	p11->SetLineColor(kRed);
-	p11->Rebin(nRebin);
-	cout << "Fraction > 5 ns (11m): " << sumBins(p11, 5.0) << endl;
-
-	p16->SetStats(0);
-	p16->SetLineWidth(2);
-	p16->Scale(1.0/p16->GetEntries());
-	p16->SetLineColor(kRed);
-	p16->Rebin(nRebin);
-	cout << "Fraction > 5 ns (16m): " << sumBins(p16, 5.0) << endl;
-
-	p21->SetStats(0);
-	p21->SetLineWidth(2);
-	p21->Scale(1.0/p21->GetEntries());
-	p21->SetLineColor(kGreen);
-	p21->Rebin(nRebin);
-	cout << "Fraction > 5 ns (21m): " << sumBins(p21, 5.0) << endl;
-
-	p26->SetStats(0);
-	p26->SetLineWidth(2);
-	p26->Scale(1.0/p26->GetEntries());
-	p26->SetLineColor(kGreen);
-	p26->Rebin(nRebin);
-	cout << "Fraction > 5 ns (26m): " << sumBins(p26, 5.0) << endl;
-
-	p31->SetStats(0);
-	p31->SetLineWidth(2);
-	p31->Scale(1.0/p31->GetEntries());
-	p31->SetLineColor(kBlue);
-	p31->Rebin(nRebin);
-	cout << "Fraction > 5 ns (31m): " << sumBins(p31, 5.0) << endl;
-
-	p36->SetStats(0);
-	p36->SetLineWidth(2);
-	p36->Scale(1.0/p6->GetEntries());
-	p36->SetLineColor(kBlue);
-	p36->Rebin(nRebin);
-	cout << "Fraction > 5 ns (36m): " << sumBins(p36, 5.0) << endl;
-
-	p41->SetStats(0);
-	p41->SetLineWidth(2);
-	p41->Scale(1.0/p41->GetEntries());
-	p41->SetLineColor(kYellow);
-	p41->Rebin(nRebin);
-	cout << "Fraction > 5 ns (41m): " << sumBins(p41, 5.0) << endl;
-
-	p46->SetStats(0);
-	p46->SetLineWidth(2);
-	p46->Scale(1.0/p6->GetEntries());
-	p46->SetLineColor(kYellow);
-	p46->Rebin(nRebin);
-	cout << "Fraction > 5 ns (46m): " << sumBins(p46, 5.0) << endl;
+	TH1F* p1 = getPlot(f1, kBlack);
+	TH1F* p6 = getPlot(f6, kBlack);
+	TH1F* p11 = getPlot(f11, kRed);
+	TH1F* p16 = getPlot(f16, kRed);
+	TH1F* p21 = getPlot(f21, kGreen);
+	TH1F* p26 = getPlot(f26, kGreen);
+	TH1F* p31 = getPlot(f31, kBlue);
+	TH1F* p36 = getPlot(f36, kBlue);
+	TH1F* p41 = getPlot(f41, kYellow);
+	TH1F* p46 = getPlot(f46, kYellow);
+	TH1F* p51 = getPlot(f51, kBlack);
+	TH1F* p56 = getPlot(f56, kBlack);
 
 	p1->Draw();
 	//p6->Draw("SAME");
@@ -127,6 +70,7 @@ void plotDLProgression ()
 	//p36->Draw("SAME");
 	p41->Draw("SAME");
 	//p46->Draw("SAME");
+	p51->Draw("SAME");
 	
 	c1->SetLogy();
 	c1->Update();
