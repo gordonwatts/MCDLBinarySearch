@@ -7,6 +7,7 @@
   [int]$nEvents = 5000,
   [switch]$BinarySearch,
   [switch]$DecayProducts,
+  [switch]$TimingInVolume,
   [switch]$Timing,
   [switch]$Run1Masses,
   [switch]$NoWait
@@ -22,6 +23,9 @@ if ($Timing) {
 }
 if ($DecayProducts) {
   $exe += "DecayProducts"
+}
+if ($TimingInVolume) {
+  $exe += "TimingInVolume"
 }
 
 # Run 1 masses?
@@ -63,6 +67,7 @@ $env:PATH="$env:PATH;c:\root\bin"
 
 $jobs = @()
 foreach ($e in $exe) {
+	$ejobs = @()
 	foreach ($m in $masses) {
 		if ($m[0]) {
 			$bosonMass = $m[0]
@@ -70,17 +75,31 @@ foreach ($e in $exe) {
 				foreach ($vpionMass in $m[1]) {
 					$runJob = {
 						param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir)
-						[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
 						set-location $dir
 						Write-Host "Running mPhi = $mPhi and mVpion = $mVPion at sqrt(s) = $beamCM"
 						& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_ctau_${ctau}_${beamCM}TeV.txt"
 					}
-					$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
+					$ejobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
 				}
 			}
 		}
 	}
+	# Make sure they are all asleep
+	Write-Host "Setting all $e jobs to be lower priority"
+	$sleep = $False
+	while (!$sleep) {
+		$p = Get-Process -ErrorAction SilentlyContinue -name $e
+		$p |  foreach { $_.PriorityClass = "BelowNormal" }
+		if ($($p.length) -ne $($ejobs.length)) {
+			Write-Host "  -> Found only $($p.length) jobs, sleeping 5 seconds"
+			Start-Sleep 5
+		} else {
+			$sleep = $True
+		}
+	}
+	$jobs += $ejobs
 }
+
 
 if (! $NoWait) {
 	# Wait for them to all finish...
