@@ -12,6 +12,10 @@ root/
 *.log
 *.txt
 
+# Stuff for us
+*.pdf
+*.png
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
