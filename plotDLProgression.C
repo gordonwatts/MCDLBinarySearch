@@ -77,4 +77,6 @@ void plotDLProgression ()
 	TString r;
 	r.Form("dlprogression-%d-%d-%dTeV.pdf", mboson, mvpion, tev);
 	c1->Print(r);
+	r.Form("dlprogression-%d-%d-%dTeV.png", mboson, mvpion, tev);
+	c1->Print(r);
 }
