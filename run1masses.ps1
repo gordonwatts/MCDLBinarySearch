@@ -13,6 +13,8 @@
   [switch]$NoWait
 )
 
+$JobsInFlight = 5
+
 # Parse the command line switches
 $exe = @()
 if ($BinarySearch) {
@@ -66,38 +68,41 @@ $env:PYTHIA8DATA=".\Release\Pythia8Data"
 $env:PATH="$env:PATH;c:\root\bin"
 
 $jobs = @()
+$InFlightLimit = $JobsInFlight
 foreach ($e in $exe) {
-	$ejobs = @()
 	foreach ($m in $masses) {
 		if ($m[0]) {
 			$bosonMass = $m[0]
-			foreach ($ctau in $decayLengths) {
-				foreach ($vpionMass in $m[1]) {
+			foreach ($vpionMass in $m[1]) {
+				$pOriginal = Get-Process -ErrorAction SilentlyContinue -name $e
+				foreach ($ctau in $decayLengths) {
 					$runJob = {
 						param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir)
 						set-location $dir
 						Write-Host "Running mPhi = $mPhi and mVpion = $mVPion at sqrt(s) = $beamCM"
+						get-process -Id $pid | foreach {$_.PriorityClass = "BelowNormal" }
 						& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_ctau_${ctau}_${beamCM}TeV.txt"
 					}
-					$ejobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
+					$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
+
+					# If we should wait, wait after each batch as long as it was a batch...
+					Write-Host "Submitted job $($jobs.length) job"
+					if (! $NoWait -and ($($jobs.length) -gt $JobsInFlight) ) {
+						# Wait for them to all finish...
+						Write-Host "Waiting for jobs to finish... Use -NoWait if you don't want to..."
+						date
+						$donejob = $jobs | wait-job -Any
+						foreach ($dj in $donejob) {
+							$jobs = $jobs | ? {$_.Name -ne $dj.Name}
+						}
+						$donejob | Receive-Job
+						$bogus = $donejob | Remove-Job
+					}
 				}
+
 			}
 		}
 	}
-	# Make sure they are all asleep
-	Write-Host "Setting all $e jobs to be lower priority"
-	$sleep = $False
-	while (!$sleep) {
-		$p = Get-Process -ErrorAction SilentlyContinue -name $e
-		$p |  foreach { $_.PriorityClass = "BelowNormal" }
-		if ($($p.length) -ne $($ejobs.length)) {
-			Write-Host "  -> Found only $($p.length) jobs, sleeping 5 seconds"
-			Start-Sleep 5
-		} else {
-			$sleep = $True
-		}
-	}
-	$jobs += $ejobs
 }
 
 
