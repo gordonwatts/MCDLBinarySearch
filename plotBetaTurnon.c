@@ -6,21 +6,21 @@ double sumBins (TH1F*p, double edge)
 }
 
 int tev = 13;
-int mboson = 140;
-int mvpion = 40;
+int mboson = 600;
+int mvpion = 150;
 
 TString getFilename(int ctau)
 {
 	TString r;
-	r.Form("Timing_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
+	r.Form("TimingInVolume_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
 	return r;
 }
 
 // Calc the beta turn on.
 TH1F *calcBeta (TDirectory *d, int color)
 {
-	char *dnom = "beta_p36_full";
-	char *num = "beta_p36_at_4.25m_5ns";
+	char *dnom = "decaylength_p36_at_ecalhcal2in_4outm";
+	char *num = "decaylength_p36_at_ecalhcal2in_4outm_5ns";
 	
 	TH1F *pdnom = (TH1F*) d->Get(dnom);
 	TH1F *pnum = (TH1F*) d->Get(num);
@@ -33,7 +33,7 @@ TH1F *calcBeta (TDirectory *d, int color)
 	//p1->Scale(1.0/p1->GetEntries());
 	pnum->SetLineColor(color);
 	//p1->Rebin(nRebin);
-	cout << "Fraction > 5 ns (1m): " << sumBins(pdnom, 0.8)/pdnom->GetEntries() << endl;
+	//cout << "Fraction > 5 ns (1m): " << sumBins(pdnom, 0.8)/pdnom->GetEntries() << endl;
 
 	return pnum;
 }
@@ -56,13 +56,16 @@ void plotBetaTurnon ()
 	TH1F *b1 = calcBeta(f1, kBlack);
 	TH1F *b6 = calcBeta(f6, kGreen);
 	TH1F *b11 = calcBeta(f11, kRed);
-	TH1F *b41 = calcBeta(f41, kYellow);
+	TH1F *b31 = calcBeta(f31, kBlue);
+	TH1F *b41 = calcBeta(f41, kBlue);
 	
 	b1->Draw();
 	b6->Draw("SAME");
 	b11->Draw("SAME");
+	b31->Draw("SAME");
+	//b41->Draw("SAME");
 
 	TString r;
-	r.Form("dlbeta-%d-%d-%dTeV.png", mboson, mvpion, tev);
+	r.Form("dlbeta-%d-%d-%dTeV.pdf", mboson, mvpion, tev);
 	c1->Print(r);
 }
