@@ -60,6 +60,8 @@ class hInfo {
 private:
 	TH1F *_betaFull;
 	TH1F *_betaPartial;
+	TH1F *_pt;
+	TH1F *_eta;
 	map<volume, TH1F*> _delayByDist;
 	map<volume, TH1F*> _betaOK;
 	map<volume, TH1F*> _betaOK5ns;
@@ -77,6 +79,9 @@ public:
 		title << "Partile " << pid;
 		_betaPartial = new TH1F((string("beta_") + name.str()).c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.5, 1.00001);
 		_betaFull = new TH1F((string("beta_") + name.str() + "_full").c_str(), (title.str() + "'s Beta; \\beta").c_str(), 100, 0.0, 1.00001);
+
+		_pt = new TH1F((string("pt_") + name.str()).c_str(), (title.str() + " p_{T}; p_{T} [GeV]").c_str(), 100, 0.0, 400.0);
+		_eta = new TH1F((string("eta_") + name.str()).c_str(), (title.str() + " \\eta; \\eta").c_str(), 100, -4.0, 4.0);
 
 		// And now the delay at each step along the way
 		for (auto v : volumes) {
@@ -99,6 +104,12 @@ public:
 			_DLOK5ns[v] = new TH1F((dlname.str() + "_5ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
 			_DLOK10ns[v] = new TH1F((dlname.str() + "_10ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
 		}
+	}
+
+	void FillUnfiltered(double eta, double pT)
+	{
+		_pt->Fill(pT);
+		_eta->Fill(eta);
 	}
 
 	void FillBeta(double beta) {
@@ -174,7 +185,9 @@ int main(int argc, char *argv[])
 			if (particlesToWatch.find(p.id()) != particlesToWatch.end()) {
 
 				// We care only about relatively central particles
-				if (fabs(p.eta()) < 2.5) {
+				double pt = p.pT();
+				delayHistogram[p.id()]->FillUnfiltered(p.eta(), pt);
+				if (fabs(p.eta()) < 2.5 && pt > 40.0) {
 					auto beta = calcBeta(p);
 					delayHistogram[p.id()]->FillBeta(beta);
 					auto pTransverseDecay = decayTransverseLength(p);
