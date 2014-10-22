@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandUtils.h" />
+    <ClInclude Include="decayUtils.h" />
     <ClInclude Include="MCUtilities.h" />
     <ClInclude Include="PlotUtils.h" />
   </ItemGroup>
@@ -22,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandUtils.cpp" />
+    <ClCompile Include="decayUtils.cpp" />
     <ClCompile Include="MCUtilities.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

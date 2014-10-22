@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "MCUtilities.h"
+#include "decayUtils.h"
 #include "CommandUtils.h"
 
 #include "TFile.h"
@@ -19,41 +20,52 @@
 using namespace std;
 using namespace Pythia8;
 
-// Calc how long this particle and its decay length will take to get
-// to a certian radius out.
-double calcPropTime(const Particle &p, double beta, double distToTravel);
-double calcBeta(const Particle &p);
-double decayTransverseLength(const Particle &p);
+namespace {
+	class volume {
+	public:
+		string _name;
+		double _rInner;
+		double _rOutter;
 
-class volume {
-public:
-	string _name;
-	double _rInner;
-	double _rOutter;
+		volume(const string &name, double rIn, double rOut)
+			: _name(name), _rInner(rIn), _rOutter(rOut)
+		{}
 
-	volume(const string &name, double rIn, double rOut)
-		: _name(name), _rInner(rIn), _rOutter(rOut)
-	{}
+		bool ContainsDecay(double v) const {
+			return v > _rInner && v < _rOutter;
+		}
 
-	bool ContainsDecay(double v) const {
-		return v > _rInner && v < _rOutter;
+		string AsHistName() {
+			ostringstream str;
+			str << _name << _rInner << "in_" << _rOutter << "out";
+			return str.str();
+		}
+
+	};
+
+	ostream &operator<< (ostream &out, const volume &v) {
+		out << v._name << "(" << v._rInner << ", " << v._rOutter << ")";
+		return out;
 	}
 
-	string AsHistName() {
-		ostringstream str;
-		str << _name << _rInner << "in_" << _rOutter << "out";
-		return str.str();
+	bool operator< (const volume &v1, const volume &v2) {
+		return v1._name < v2._name;
 	}
 
-};
+	string bRangeName(const pair<double, double> &br) {
+		ostringstream txt;
+		txt << "br" << br.first << "_" << br.second;
+		return txt.str();
+	}
+	string bRangeTitle(const pair<double, double> &br) {
+		ostringstream txt;
+		txt << "with " << br.first << " < \\beta < " << br.second;
+		return txt.str();
+	}
 
-ostream &operator<< (ostream &out, const volume &v) {
-	out << v._name << "(" << v._rInner << ", " << v._rOutter << ")";
-	return out;
-}
-
-bool operator< (const volume &v1, const volume &v2) {
-	return v1._name < v2._name;
+	bool containsBeta(double b, const pair<double, double> &br) {
+		return b > br.first && b <= br.second;
+	}
 }
 
 class hInfo {
@@ -66,12 +78,12 @@ private:
 	map<volume, TH1F*> _betaOK;
 	map<volume, TH1F*> _betaOK5ns;
 	map<volume, TH1F*> _betaOK10ns;
-	map<volume, TH1F*> _DLOK;
-	map<volume, TH1F*> _DLOK5ns;
-	map<volume, TH1F*> _DLOK10ns;
+	map<volume, map<pair<double,double>, TH1F*>> _DLOK;
+	map<volume, map<pair<double,double>, TH1F*>> _DLOK5ns;
+	map<volume, map<pair<double,double>, TH1F*>> _DLOK10ns;
 
 public:
-	hInfo(int pid, const vector<volume> &volumes) {
+	hInfo(int pid, const vector<volume> &volumes, const vector<pair<double,double>> &betaRanges) {
 		ostringstream name, title;
 
 		// Do the main particle guys
@@ -97,12 +109,15 @@ public:
 			_betaOK5ns[v] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 			_betaOK10ns[v] = new TH1F((bname.str() + "_10ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 
-			ostringstream dlname, dltitle;
-			dlname << "decaylength_p" << pid << "_at_" << v.AsHistName() << "m";
-			dltitle << "Decay Length for particle " << pid << " if it reached " << v << "m; Decay Length [m]";
-			_DLOK[v] = new TH1F(dlname.str().c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
-			_DLOK5ns[v] = new TH1F((dlname.str() + "_5ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
-			_DLOK10ns[v] = new TH1F((dlname.str() + "_10ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+			// For each volume, we want to know how the decays look in each beta region.
+			for (auto &br : betaRanges) {
+				ostringstream dlname, dltitle;
+				dlname << "decaylength_" << bRangeName(br) << "_p" << pid << "_at_" << v.AsHistName() << "m";
+				dltitle << "Decay Length for particle " << pid << " if it reached " << v << "m in " << bRangeTitle(br) << "; Decay Length [m]";
+				_DLOK[v][br] = new TH1F(dlname.str().c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+				_DLOK5ns[v][br] = new TH1F((dlname.str() + "_5ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+				_DLOK10ns[v][br] = new TH1F((dlname.str() + "_10ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+			}
 		}
 	}
 
@@ -133,14 +148,18 @@ public:
 		}
 	}
 
-	void FillDLGood(volume v, double decaylength, double decayTime)
+	void FillDLGood(volume v, double decaylength, double decayTime, double beta)
 	{
-		_DLOK[v]->Fill(decaylength);
-		if (decayTime < 5.0) {
-			_DLOK5ns[v]->Fill(decaylength);
-		}
-		if (decayTime < 10.0) {
-			_DLOK10ns[v]->Fill(decaylength);
+		for (const auto &br : _DLOK[v]) {
+			if (containsBeta(beta, br.first)) {
+				_DLOK[v][br.first]->Fill(decaylength);
+				if (decayTime < 5.0) {
+					_DLOK5ns[v][br.first]->Fill(decaylength);
+				}
+				if (decayTime < 10.0) {
+					_DLOK10ns[v][br.first]->Fill(decaylength);
+				}
+			}
 		}
 	}
 };
@@ -165,13 +184,24 @@ int main(int argc, char *argv[])
 	set<int> particlesToWatch;
 	particlesToWatch.insert(36);
 
+	vector<pair<double, double>> betaRanges;
+	betaRanges.push_back(make_pair(0.95, 1.0));
+	betaRanges.push_back(make_pair(0.90, 0.95));
+	betaRanges.push_back(make_pair(0.85, 0.90));
+	betaRanges.push_back(make_pair(0.80, 0.85));
+	betaRanges.push_back(make_pair(0.70, 0.80));
+	betaRanges.push_back(make_pair(0.60, 0.70));
+	betaRanges.push_back(make_pair(0.50, 0.60));
+	betaRanges.push_back(make_pair(0.40, 0.50));
+	betaRanges.push_back(make_pair(0.0, 1.0)); // The whole thing.
+
 	// Speed of light, meters per second
 	double c = 3.0E8;
 
 	// Init the histograms to track this. Units of nanoseconds.
 	map<int, hInfo*> delayHistogram;
 	for (auto p : particlesToWatch) {
-		delayHistogram[p] = new hInfo(p, volumes);
+		delayHistogram[p] = new hInfo(p, volumes, betaRanges);
 	}
 
 	// Run the MC!
@@ -199,12 +229,12 @@ int main(int argc, char *argv[])
 							// We just need to know the time of the jet. We figure that is going to be about the time
 							// of the decay itself.
 
-							auto beta1Time = pTransverseDecay / c * 1.0E9;
+							auto beta1Time = decayLength(p) / c * 1.0E9;
 							auto betaTime = beta1Time / beta;
 							auto delta = betaTime - beta1Time;
 							delayHistogram[p.id()]->FillDelay(v, delta);
 							delayHistogram[p.id()]->FillBetaGood(v, beta, delta);
-							delayHistogram[p.id()]->FillDLGood(v, pTransverseDecay, delta);
+							delayHistogram[p.id()]->FillDLGood(v, pTransverseDecay, delta, beta);
 						}
 					}
 				}
@@ -217,51 +247,3 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// Calc the beta of the particle
-double calcBeta(const Particle &p)
-{
-	TLorentzVector v;
-	v.SetPtEtaPhiE(p.pT(), p.eta(), p.phi(), p.e());
-	return v.Beta();
-}
-
-// Calc the transverse distance from the origin to the decay ^2.
-double decayTransverseLength2(const Particle &p)
-{
-	// Calc the transverse decay location of the particle.
-	// Put everything in units of m
-	auto decayX = p.xDec() / 1000.0;
-	auto decayY = p.yDec() / 1000.0;
-	return decayX*decayX + decayY*decayY;
-}
-
-// Calc the transverse distance from the orgin to the decay.
-double decayTransverseLength(const Particle &p)
-{
-	return sqrt(decayTransverseLength2(p));
-}
-
-// Calc how long it takes a particle to get out to a certian distnace. Assume
-// it travesl at speed beta till it decays, and then beta of 1.
-double calcPropTime(const Particle &p, double beta, double distToTravel)
-{
-	// Calc the transverse decay location of the particle.
-	// Put everything in units of m
-	auto distDecay2 = decayTransverseLength2(p);
-
-	auto destToTravel2 = distToTravel*distToTravel;
-
-	// Will it decay before it gets to that distance? Then
-	// we can do this pretty easily. Remember units are ns!
-	double c = 3E8;
-	if (distDecay2 > destToTravel2) {
-		return distToTravel / (beta*c) * 1.0E9;
-	}
-
-	// We have to split this in two
-	auto distDecay = sqrt(distDecay2);
-	auto firstLegTime = distDecay / (beta * c) * 1.0E9;
-	auto secondLegTime = (distToTravel - distDecay) / c * 1.0E9;
-
-	return firstLegTime + secondLegTime;
-}

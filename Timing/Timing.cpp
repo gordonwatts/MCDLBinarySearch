@@ -12,6 +12,7 @@
 
 #include "MCUtilities.h"
 #include "CommandUtils.h"
+#include "decayUtils.h"
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -19,12 +20,6 @@
 
 using namespace std;
 using namespace Pythia8;
-
-// Calc how long this particle and its decay length will take to get
-// to a certian radius out.
-double calcPropTime(const Particle &p, double beta, double distToTravel);
-double calcBeta(const Particle &p);
-double decayTransverseLength(const Particle &p);
 
 double eatDouble(char *arglist[], int &index)
 {
@@ -129,6 +124,7 @@ int main(int argc, char *argv[])
 					auto beta = calcBeta(p);
 					delayHistogram[p.id()]->FillBeta(beta);
 					auto pTransverseDecay = decayTransverseLength(p);
+					throw runtime_error("Code not checked to make sure decay time is 3D, not 2D!");
 					for (auto d : distances) {
 
 						// Ignore the particle if it won't decay before it hits this point.
