@@ -76,27 +76,30 @@ foreach ($e in $exe) {
 			foreach ($vpionMass in $m[1]) {
 				$pOriginal = Get-Process -ErrorAction SilentlyContinue -name $e
 				foreach ($ctau in $decayLengths) {
-					$runJob = {
-						param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir)
-						set-location $dir
-						Write-Host "Running mPhi = $mPhi and mVpion = $mVPion at sqrt(s) = $beamCM"
-						get-process -Id $pid | foreach {$_.PriorityClass = "BelowNormal" }
-						& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "${e}_mB_${mPhi}_mVP_${mVPion}_ctau_${ctau}_${beamCM}TeV.txt"
-					}
-					$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path
-
-					# If we should wait, wait after each batch as long as it was a batch...
-					Write-Host "Submitted job $($jobs.length) job"
-					if (! $NoWait -and ($($jobs.length) -gt $JobsInFlight) ) {
-						# Wait for them to all finish...
-						Write-Host "Waiting for jobs to finish... Use -NoWait if you don't want to..."
-						date
-						$donejob = $jobs | wait-job -Any
-						foreach ($dj in $donejob) {
-							$jobs = $jobs | ? {$_.Name -ne $dj.Name}
+					$logfileName = "${e}_mB_${bosonMass}_mVP_${vpionMass}_ctau_${ctau}_${beamCM}TeV.txt"
+					if (test-path $logFileName) {
+						Write-Host "Skipping ${e} mB=${bosonMass} mVP=${vpionMass} ctau=${ctau} at ${beamCM}TeV because log file exists"
+					} else {
+						$runJob = {
+							param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir, $logfileName)
+							set-location $dir
+							Write-Host "Running mPhi = $mPhi and mVpion = $mVPion  with ctau = $ctau for $nEvents events at sqrt(s) = $beamCM"
+							get-process -Id $pid | foreach {$_.PriorityClass = "BelowNormal" }
+							& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "$logfileName"
 						}
-						$donejob | Receive-Job
-						$bogus = $donejob | Remove-Job
+						$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path,$logfileName
+
+						# If we should wait, wait after each batch as long as it was a batch...
+						if (! $NoWait -and ($($jobs.length) -gt $JobsInFlight) ) {
+							# Wait for them to all finish...
+							$donejob = $jobs | wait-job -Any
+							foreach ($dj in $donejob) {
+								$jobs = $jobs | ? {$_.Name -ne $dj.Name}
+							}
+							date
+							Receive-Job
+							$bogus = $donejob | Remove-Job
+						}
 					}
 				}
 
