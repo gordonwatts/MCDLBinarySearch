@@ -74,7 +74,6 @@ foreach ($e in $exe) {
 		if ($m[0]) {
 			$bosonMass = $m[0]
 			foreach ($vpionMass in $m[1]) {
-				$pOriginal = Get-Process -ErrorAction SilentlyContinue -name $e
 				foreach ($ctau in $decayLengths) {
 					$logfileName = "${e}_mB_${bosonMass}_mVP_${vpionMass}_ctau_${ctau}_${beamCM}TeV.txt"
 					if (test-path $logFileName) {
