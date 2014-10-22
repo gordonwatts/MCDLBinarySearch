@@ -64,6 +64,9 @@ private:
 	map<volume, TH1F*> _betaOK;
 	map<volume, TH1F*> _betaOK5ns;
 	map<volume, TH1F*> _betaOK10ns;
+	map<volume, TH1F*> _DLOK;
+	map<volume, TH1F*> _DLOK5ns;
+	map<volume, TH1F*> _DLOK10ns;
 
 public:
 	hInfo(int pid, const vector<volume> &volumes) {
@@ -88,6 +91,13 @@ public:
 			_betaOK[v] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 			_betaOK5ns[v] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
 			_betaOK10ns[v] = new TH1F((bname.str() + "_10ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
+
+			ostringstream dlname, dltitle;
+			dlname << "decaylength_p" << pid << "_at_" << v.AsHistName() << "m";
+			dltitle << "Decay Length for particle " << pid << " if it reached " << v << "m; Decay Length [m]";
+			_DLOK[v] = new TH1F(dlname.str().c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+			_DLOK5ns[v] = new TH1F((dlname.str() + "_5ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+			_DLOK10ns[v] = new TH1F((dlname.str() + "_10ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
 		}
 	}
 
@@ -109,6 +119,17 @@ public:
 		}
 		if (decayTime < 10.0) {
 			_betaOK10ns[v]->Fill(beta);
+		}
+	}
+
+	void FillDLGood(volume v, double decaylength, double decayTime)
+	{
+		_DLOK[v]->Fill(decaylength);
+		if (decayTime < 5.0) {
+			_DLOK5ns[v]->Fill(decaylength);
+		}
+		if (decayTime < 10.0) {
+			_DLOK10ns[v]->Fill(decaylength);
 		}
 	}
 };
@@ -170,6 +191,7 @@ int main(int argc, char *argv[])
 							auto delta = betaTime - beta1Time;
 							delayHistogram[p.id()]->FillDelay(v, delta);
 							delayHistogram[p.id()]->FillBetaGood(v, beta, delta);
+							delayHistogram[p.id()]->FillDLGood(v, pTransverseDecay, delta);
 						}
 					}
 				}
