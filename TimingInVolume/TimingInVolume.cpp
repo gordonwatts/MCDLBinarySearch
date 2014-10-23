@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 				// We care only about relatively central particles
 				double pt = p.pT();
 				delayHistogram[p.id()]->FillUnfiltered(p.eta(), pt);
-				if (fabs(p.eta()) < 2.5 && pt > 60.0) {
+				if (fabs(p.eta()) < 2.5 && pt > cfg._ptCut) {
 					auto beta = calcBeta(p);
 					delayHistogram[p.id()]->FillBeta(beta);
 					auto pTransverseDecay = decayTransverseLength(p);

@@ -5,6 +5,7 @@
   [string]$DecayLengthScan = "",
   [double]$DecayLength = 1.5,
   [int]$nEvents = 5000,
+  [double]$ptCut=0.0,
   [switch]$BinarySearch,
   [switch]$DecayProducts,
   [switch]$TimingInVolume,
@@ -78,18 +79,18 @@ foreach ($e in $exe) {
 			$bosonMass = $m[0]
 			foreach ($vpionMass in $m[1]) {
 				foreach ($ctau in $decayLengths) {
-					$logfileName = "${e}_mB_${bosonMass}_mVP_${vpionMass}_ctau_${ctau}_${beamCM}TeV.txt"
+					$logfileName = "${e}_mB_${bosonMass}_mVP_${vpionMass}_ctau_${ctau}_${beamCM}TeV_${ptCut}pt.txt"
 					if (test-path $logFileName) {
-						Write-Host "Skipping ${e} mB=${bosonMass} mVP=${vpionMass} ctau=${ctau} at ${beamCM}TeV because log file exists"
+						Write-Host "Skipping ${e} mB=${bosonMass} mVP=${vpionMass} ctau=${ctau} at ${beamCM}TeV with pt > ${ptCut} because log file exists"
 					} else {
 						$runJob = {
-							param ($mPhi, $mVPion, $ctau, $beamCM, $e, $nEvents, $dir, $logfileName)
+							param ($mPhi, $mVPion, $ctau, $beamCM, $ptCut, $e, $nEvents, $dir, $logfileName)
 							set-location $dir
-							Write-Host "Running mPhi = $mPhi and mVpion = $mVPion  with ctau = $ctau for $nEvents events at sqrt(s) = $beamCM"
+							Write-Host "Running mPhi = $mPhi and mVpion = $mVPion  with ctau = $ctau for $nEvents events at sqrt(s) = $beamCM with pt > $ptCut"
 							get-process -Id $pid | foreach {$_.PriorityClass = "BelowNormal" }
-							& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents | Out-File "$logfileName"
+							& ".\Release\$e.exe" -b $mPhi -v $mVPion -beam $beamCM -dl $ctau -n $nEvents -pt $ptCut | Out-File "$logfileName"
 						}
-						$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path,$logfileName
+						$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM, $ptCut,$e,$nEvents,$(pwd).Path,$logfileName
 
 						# If we should wait, wait after each batch as long as it was a batch...
 						if (! $NoWait -and ($($jobs.length) -ge $JobsInFlight) ) {
