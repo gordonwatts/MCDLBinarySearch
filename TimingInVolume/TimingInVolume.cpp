@@ -111,11 +111,11 @@ public:
 			bname << "beta_p" << pid << "_at_" << v.AsHistName() << "m";
 			btitle << "Beta for particle " << pid << " if it reached " << v << "m; \\beta";
 			_betaOK[v] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_delayByDist[v]->Sumw2();
+			_betaOK[v]->Sumw2();
 			_betaOK5ns[v] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_delayByDist[v]->Sumw2();
+			_betaOK5ns[v]->Sumw2();
 			_betaOK10ns[v] = new TH1F((bname.str() + "_10ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_delayByDist[v]->Sumw2();
+			_betaOK10ns[v]->Sumw2();
 
 			// For each volume, we want to know how the decays look in each beta region.
 			for (auto &br : betaRanges) {
