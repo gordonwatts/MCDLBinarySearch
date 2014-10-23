@@ -22,8 +22,10 @@ TH1F* getPlot(TDirectory *d, int color, const char* brange)
 	TString plotName;
 	plotName.Form("decaylength_br%s_p36_at_ecalhcal2in_4outm_5ns", brange);
 	TH1F *pnum = (TH1F*)d->Get(plotName);
+	pnum->Rebin(4);
 	plotName.Form("decaylength_br%s_p36_at_ecalhcal2in_4outm", brange);
 	TH1F *pdnom = (TH1F*)d->Get(plotName);
+	pdnom->Rebin(4);
 
 	pnum->Divide(pdnom);
 
@@ -70,17 +72,17 @@ void plotConstantBeta()
 	TH1F* p51 = getPlot(f51, kBlack, brange);
 	TH1F* p56 = getPlot(f56, kBlack, brange);
 
-	p1->Draw();
+	p1->Draw("E");
 	//p6->Draw("SAME");
-	p11->Draw("SAME");
+	p11->Draw("ESAME");
 	//p16->Draw("SAME");
-	p21->Draw("SAME");
+	p21->Draw("ESAME");
 	//p26->Draw("SAME");
-	p31->Draw("SAME");
+	p31->Draw("ESAME");
 	//p36->Draw("SAME");
-	p41->Draw("SAME");
+	p41->Draw("ESAME");
 	//p46->Draw("SAME");
-	p51->Draw("SAME");
+	p51->Draw("ESAME");
 
 	//c1->SetLogy();
 	//c1->Update();

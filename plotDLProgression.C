@@ -8,11 +8,12 @@ double sumBins (TH1F*p, double edge)
 int tev = 13;
 int mboson = 140;
 int mvpion = 40;
+int ptcut = 60;
 
 TString getFilename(int ctau)
 {
 	TString r;
-	r.Form("TimingInVolume_mB_%d_mVP_%d_ctau_%d_%dTeV.root", mboson, mvpion, ctau, tev);
+	r.Form("TimingInVolume_mB_%d_mVP_%d_ctau_%d_%dTeV_%dpt.root", mboson, mvpion, ctau, tev, ptcut);
 	return r;
 }
 
