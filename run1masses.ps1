@@ -13,7 +13,10 @@
   [switch]$NoWait
 )
 
-$JobsInFlight = 5
+# Default # of jobs is number of processors + 1 (e.g. including hyperthreading). We want to fully
+# burn out battery life, of course!
+$logical = $r = Get-WmiObject -class win32_processor -Property "numberOfLogicalProcessors"
+$JobsInFlight = $r.numberOfLogicalProcessors+1
 
 # Parse the command line switches
 $exe = @()
@@ -89,14 +92,14 @@ foreach ($e in $exe) {
 						$jobs += Start-Job $runJob -ArgumentList $bosonMass,$vpionMass,$ctau,$beamCM,$e,$nEvents,$(pwd).Path,$logfileName
 
 						# If we should wait, wait after each batch as long as it was a batch...
-						if (! $NoWait -and ($($jobs.length) -gt $JobsInFlight) ) {
+						if (! $NoWait -and ($($jobs.length) -ge $JobsInFlight) ) {
 							# Wait for them to all finish...
 							$donejob = $jobs | wait-job -Any
 							foreach ($dj in $donejob) {
 								$jobs = $jobs | ? {$_.Name -ne $dj.Name}
 							}
 							date
-							Receive-Job
+							$donejob | Receive-Job
 							$bogus = $donejob | Remove-Job
 						}
 					}
@@ -110,11 +113,11 @@ foreach ($e in $exe) {
 
 if (! $NoWait) {
 	# Wait for them to all finish...
-	$jobs | wait-job
+	$bogus = $jobs | wait-job
 
 	# Getting the information back from the jobs
-	$jobs | Receive-Job
-	$jobs | remove-job
+	$bogus = $jobs | Receive-Job
+	$bogus = $jobs | remove-job
 } else {
 	return $jobs
 }
