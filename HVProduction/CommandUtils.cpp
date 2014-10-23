@@ -31,6 +31,9 @@ PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
 	config._ctau = 1.5;
 	config._beamCOM = 13;
 	config._nEvents = 5000;
+	config._ptCut = 0.0;
+	config._pt1Cut = 60.0;
+	config._pt2Cut = 40.0;
 
 	// Parse the arguments to see what we should set.
 	for (int i = 1; i < argc; i++) {
@@ -50,6 +53,15 @@ PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
 		else if (a == "-n") {
 			config._nEvents = eat<int>(argv, i);
 		}
+		else if (a == "-pt") {
+			config._ptCut = eat<double>(argv, i);
+		}
+		else if (a == "-pt1") {
+			config._pt1Cut = eat<double>(argv, i);
+		}
+		else if (a == "-pt2") {
+			config._pt2Cut = eat<double>(argv, i);
+		}
 		else {
 			cout << "unknown command line option: " << a << endl;
 			throw runtime_error("Unknown command line option");
@@ -66,7 +78,7 @@ PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
 TFile *openROOTFile(const std::string &programName, const PythiaConfigInfo &info)
 {
 	ostringstream fname;
-	fname << programName << "_mB_" << info._massBoson << "_mVP_" << info._massVPion << "_ctau_" << info._ctau << "_" << info._beamCOM << "TeV.root";
+	fname << programName << "_mB_" << info._massBoson << "_mVP_" << info._massVPion << "_ctau_" << info._ctau << "_" << info._beamCOM << "TeV_" << info._ptCut << "pt.root";
 	return new TFile(fname.str().c_str(), "RECREATE");
 }
 

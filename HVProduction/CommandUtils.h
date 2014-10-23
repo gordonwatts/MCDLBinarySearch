@@ -22,6 +22,11 @@ struct PythiaConfigInfo {
 
 	// # of events to run
 	int _nEvents;
+
+	// What jet pt cut should be made?
+	double _ptCut;
+	double _pt1Cut;
+	double _pt2Cut;
 };
 
 std::ostream &operator<< (std::ostream &output, const PythiaConfigInfo &info);

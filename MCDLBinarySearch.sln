@@ -24,6 +24,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TimingInVolume", "TimingInV
 		{10C6F88B-4EB5-404C-B30A-CBC189436BC5} = {10C6F88B-4EB5-404C-B30A-CBC189436BC5}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TwoJetTimingInVolume", "TwoJetTimingInVolume\TwoJetTimingInVolume.vcxproj", "{E69A0B47-4657-40E1-A837-566447E76B67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -54,6 +56,10 @@ Global
 		{D81BF343-1F3B-4DAB-9303-DDA218ACD53E}.Debug|Win32.Build.0 = Debug|Win32
 		{D81BF343-1F3B-4DAB-9303-DDA218ACD53E}.Release|Win32.ActiveCfg = Release|Win32
 		{D81BF343-1F3B-4DAB-9303-DDA218ACD53E}.Release|Win32.Build.0 = Release|Win32
+		{E69A0B47-4657-40E1-A837-566447E76B67}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E69A0B47-4657-40E1-A837-566447E76B67}.Debug|Win32.Build.0 = Debug|Win32
+		{E69A0B47-4657-40E1-A837-566447E76B67}.Release|Win32.ActiveCfg = Release|Win32
+		{E69A0B47-4657-40E1-A837-566447E76B67}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
