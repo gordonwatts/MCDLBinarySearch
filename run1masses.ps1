@@ -10,6 +10,7 @@
   [switch]$DecayProducts,
   [switch]$TimingInVolume,
   [switch]$Timing,
+  [switch]$TwoJetTimingInVolume,
   [switch]$Run1Masses,
   [switch]$NoWait
 )
@@ -32,6 +33,9 @@ if ($DecayProducts) {
 }
 if ($TimingInVolume) {
   $exe += "TimingInVolume"
+}
+if ($TwoJetTimingInVolume) {
+  $exe += "TwoJetTimingInVolume"
 }
 
 # Run 1 masses?
