@@ -40,7 +40,6 @@ namespace {
 			str << _name << _rInner << "in_" << _rOutter << "out";
 			return str.str();
 		}
-
 	};
 
 	ostream &operator<< (ostream &out, const volume &v) {
