@@ -183,9 +183,9 @@ int main(int argc, char *argv[])
 	// The volumes we are interested in and the particles we are interested in.
 	// Distances are in meters.
 	vector<volume> volumes;
-	volumes.push_back(volume("ecalSafe", 1.5, 2.0));
 	volumes.push_back(volume("hcal", 2.25, 4.25));
 	volumes.push_back(volume("ecalhcal", 2.0, 4.0));
+	volumes.push_back(volume("muon", 3.8, 7.5));
 
 	set<int> particlesToWatch;
 	particlesToWatch.insert(36);
