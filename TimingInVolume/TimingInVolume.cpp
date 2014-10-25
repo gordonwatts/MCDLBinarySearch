@@ -2,20 +2,22 @@
 /// Explore the time a particle first appears in a volume.
 ///
 
+#include "MCUtilities.h"
+#include "decayUtils.h"
+#include "CommandUtils.h"
+
+#include "Pythia8/Pythia.h"
+
+#include "TFile.h"
+#include "TH1F.h"
+#include "TLorentzVector.h"
+
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-
-#include "MCUtilities.h"
-#include "decayUtils.h"
-#include "CommandUtils.h"
-
-#include "TFile.h"
-#include "TH1F.h"
-#include "TLorentzVector.h"
 
 using namespace std;
 using namespace Pythia8;
@@ -75,15 +77,12 @@ private:
 	TH1F *_pt;
 	TH1F *_eta;
 	map<volume, TH1F*> _delayByDist;
-	map<volume, TH1F*> _betaOK;
-	map<volume, TH1F*> _betaOK5ns;
-	map<volume, TH1F*> _betaOK10ns;
-	map<volume, map<pair<double,double>, TH1F*>> _DLOK;
-	map<volume, map<pair<double,double>, TH1F*>> _DLOK5ns;
-	map<volume, map<pair<double,double>, TH1F*>> _DLOK10ns;
+	map<volume, map<int, TH1F*>> _betaOK;
+	map<volume, map<pair<double,double>, map<int, TH1F*>>> _DLOK;
 
 public:
-	hInfo(int pid, const vector<volume> &volumes, const vector<pair<double,double>> &betaRanges) {
+	// delay in ns
+	hInfo(int pid, const vector<volume> &volumes, const vector<pair<double,double>> &betaRanges, const vector<int> &delay) {
 		ostringstream name, title;
 
 		// Do the main particle guys
@@ -107,27 +106,27 @@ public:
 			_delayByDist[v] = new TH1F(dname.str().c_str(), dtitle.str().c_str(), 40, -10.0, 10.0);
 			_delayByDist[v]->Sumw2();
 
-			ostringstream bname, btitle;
-			bname << "beta_p" << pid << "_at_" << v.AsHistName() << "m";
-			btitle << "Beta for particle " << pid << " if it reached " << v << "m; \\beta";
-			_betaOK[v] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_betaOK[v]->Sumw2();
-			_betaOK5ns[v] = new TH1F((bname.str() + "_5ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_betaOK5ns[v]->Sumw2();
-			_betaOK10ns[v] = new TH1F((bname.str() + "_10ns").c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
-			_betaOK10ns[v]->Sumw2();
+			// Plots for different delays
+			auto delayList(delay);
+			delayList.push_back(0); // Add the all inclusive list to the delays.
+
+			for (auto d : delayList) {
+				ostringstream bname, btitle;
+				bname << "beta_p" << pid << "_at_" << v.AsHistName() << "m_" << d << "ns";
+				btitle << "Beta for particle " << pid << " if it reached " << v << "m within " << d << "ns; \\beta";
+				_betaOK[v][d] = new TH1F(bname.str().c_str(), btitle.str().c_str(), 100, 0.0, 1.00001);
+				_betaOK[v][d]->Sumw2();
+			}
 
 			// For each volume, we want to know how the decays look in each beta region.
 			for (auto &br : betaRanges) {
-				ostringstream dlname, dltitle;
-				dlname << "decaylength_" << bRangeName(br) << "_p" << pid << "_at_" << v.AsHistName() << "m";
-				dltitle << "Decay Length for particle " << pid << " if it reached " << v << "m in " << bRangeTitle(br) << "; Decay Length [m]";
-				_DLOK[v][br] = new TH1F(dlname.str().c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
-				_DLOK[v][br]->Sumw2();
-				_DLOK5ns[v][br] = new TH1F((dlname.str() + "_5ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
-				_DLOK5ns[v][br]->Sumw2();
-				_DLOK10ns[v][br] = new TH1F((dlname.str() + "_10ns").c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
-				_DLOK10ns[v][br]->Sumw2();
+				for (auto d : delayList) {
+					ostringstream dlname, dltitle;
+					dlname << "decaylength_" << bRangeName(br) << "_p" << pid << "_at_" << v.AsHistName() << "m_" << d << "ns";
+					dltitle << "Decay Length for particle " << pid << " if it reached " << v << "m in " << bRangeTitle(br) << " within " << d << "ns; Decay Length [m]";
+					_DLOK[v][br][d] = new TH1F(dlname.str().c_str(), dltitle.str().c_str(), 100, 0.0, 5.0);
+					_DLOK[v][br][d]->Sumw2();
+				}
 			}
 		}
 	}
@@ -149,13 +148,12 @@ public:
 		}
 		_delayByDist[v]->Fill(delay);
 	}
+
 	void FillBetaGood(volume v, double beta, double decayTime) {
-		_betaOK[v]->Fill(beta);
-		if (decayTime < 5.0) {
-			_betaOK5ns[v]->Fill(beta);
-		}
-		if (decayTime < 10.0) {
-			_betaOK10ns[v]->Fill(beta);
+		for (auto &p : _betaOK[v]) {
+			if (p.first == 0 || decayTime < p.first) {
+				p.second->Fill(beta);
+			}
 		}
 	}
 
@@ -163,12 +161,9 @@ public:
 	{
 		for (const auto &br : _DLOK[v]) {
 			if (containsBeta(beta, br.first)) {
-				_DLOK[v][br.first]->Fill(decaylength);
-				if (decayTime < 5.0) {
-					_DLOK5ns[v][br.first]->Fill(decaylength);
-				}
-				if (decayTime < 10.0) {
-					_DLOK10ns[v][br.first]->Fill(decaylength);
+				for (auto &p : br.second) {
+					if (p.first == 0 || decayTime < p.first)
+						p.second->Fill(decaylength);
 				}
 			}
 		}
@@ -196,15 +191,16 @@ int main(int argc, char *argv[])
 	particlesToWatch.insert(36);
 
 	vector<pair<double, double>> betaRanges;
-	betaRanges.push_back(make_pair(0.95, 1.0));
-	betaRanges.push_back(make_pair(0.90, 0.95));
-	betaRanges.push_back(make_pair(0.85, 0.90));
-	betaRanges.push_back(make_pair(0.80, 0.85));
-	betaRanges.push_back(make_pair(0.70, 0.80));
-	betaRanges.push_back(make_pair(0.60, 0.70));
-	betaRanges.push_back(make_pair(0.50, 0.60));
-	betaRanges.push_back(make_pair(0.40, 0.50));
+	betaRanges.push_back(make_pair(0.8, 1.0));
+	betaRanges.push_back(make_pair(0.50, 0.80));
+	betaRanges.push_back(make_pair(0.0, 0.50));
 	betaRanges.push_back(make_pair(0.0, 1.0)); // The whole thing.
+
+	vector<int> delays; // Which ns do we want to look at?
+	delays.push_back(5);
+	delays.push_back(8); // For muon system trigger
+	delays.push_back(10); // Cal ratio trigger
+	delays.push_back(13); // For the bucket - this is 1/2 ns into the next bucket.
 
 	// Speed of light, meters per second
 	double c = 3.0E8;
@@ -212,7 +208,7 @@ int main(int argc, char *argv[])
 	// Init the histograms to track this. Units of nanoseconds.
 	map<int, hInfo*> delayHistogram;
 	for (auto p : particlesToWatch) {
-		delayHistogram[p] = new hInfo(p, volumes, betaRanges);
+		delayHistogram[p] = new hInfo(p, volumes, betaRanges, delays);
 	}
 
 	// Run the MC!
