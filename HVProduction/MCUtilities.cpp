@@ -6,6 +6,31 @@
 
 #include <sstream>
 
+namespace {
+	void setParticleMass(Pythia8::Pythia &pythia, int pid, double mass)
+	{
+		ostringstream massString;
+
+		massString << pid << ":m0 = " << mass;
+		pythia.readString(massString.str());
+	}
+
+	void setParticleMassAndWidth(Pythia8::Pythia &pythia, int pid, double mass, double mMinMaxWindow)
+	{
+		setParticleMass(pythia, pid, mass);
+		ostringstream massString, massLowString, massHighString;
+
+		massString << pid << ":m0 = " << mass;
+		pythia.readString(massString.str());
+
+		massLowString << pid << ":mMin = " << mass - mMinMaxWindow;
+		pythia.readString(massLowString.str());
+
+		massHighString << pid << ":mMax = " << mass + mMinMaxWindow;
+		pythia.readString(massHighString.str());
+	}
+}
+
 void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mVPion, double beamCOM)
 {
 	ostringstream eCM;
@@ -49,12 +74,8 @@ void configHV(Pythia8::Pythia &pythia, double lifetime, double mHiggs, double mV
 	pythia.readString("35:onMode = off");     // Turn off all H_v decays
 	pythia.readString("35:onIfAll = 36 36");  // Turn back on H_v->pi_vpi_v
 
-	ostringstream mBosonMassString, mVPionMassString;
-	mBosonMassString << "35:m0 = " << mHiggs;
-	pythia.readString(mBosonMassString.str());         // Set H_v mass
-
-	mVPionMassString << "36:m0 = " << mVPion;
-	pythia.readString(mVPionMassString.str());          // Set pi_v mass
+	setParticleMass(pythia, 35, mHiggs);
+	setParticleMassAndWidth(pythia, 36, mVPion, 2.0);
 
 	ostringstream dlstring;
 	dlstring << "36:tau0 = " << lifetime;
