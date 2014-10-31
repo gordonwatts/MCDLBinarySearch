@@ -2,6 +2,7 @@
 // Do a binary search to try to localize the proper DL.
 //
 #include "MCUtilities.h"
+#include "CommandUtils.h"
 #include "Pythia8/Pythia.h"
 
 #include "TFile.h"
@@ -13,16 +14,16 @@ using namespace std;
 using namespace Pythia8;
 
 // Return the calc of the dl.
-double calc_it(TDirectory *dir, double dl, double mBoson, double mVPion)
+double calc_it(TDirectory *dir, const PythiaConfigInfo &info)
 {
 	Pythia pythia;
-	configHV(pythia, dl * 1000.0, mBoson, mVPion);
+	configPythia(pythia, info);
 	pythia.init();
 
-	runMC(dir, pythia, 5000);
+	runMC(dir, pythia, info._nEvents);
 
 	auto r = ExtractDifferenceRatio(dir, "vpionProductionDL");
-	cout << "** For decay length of " << dl << " we see a fraction of " << r << endl;
+	cout << "** For decay length of " << info._ctau << "m we see a fraction of " << r << endl;
 	return r;
 }
 
@@ -70,34 +71,22 @@ double eatDouble(char *arglist[], int &index)
 
 int main(int argc, char *argv[])
 {
-	double mBoson = 140;
-	double mVPion = 20;
-
-	// Parse the arguments to see what we should set.
-	for (int i = 0; i < argc; i++) {
-		string a(argv[i]);
-		if (a == "-b") {
-			mBoson = eatDouble(argv, i);
-		}
-		else if (a == "-v") {
-			mVPion = eatDouble(argv, i);
-		}
-	}
-
-	cout << "Analyzing for mBoson=" << mBoson << " and mVPion=" << mVPion << endl;
+	// Parse the input, just to get the name of the file right
+	auto cfg = parseConfig(argv, argc);
 
 	// The output file.
 	ostringstream fname;
-	fname << "BinarySearch_mB_" << mBoson << "_mVP_" << mVPion << ".root";
+	fname << "BinarySearch_mB_" << cfg._massBoson << "_mVP_" << cfg._massVPion << "_" << cfg._beamCOM << "TeV.root";
 	auto f = new TFile(fname.str().c_str(), "RECREATE");
 
 	// Run the search
 
-	auto r = binary_search_dl([=](double vpdl) -> double {
+	auto r = binary_search_dl([&](double vpdl) -> double {
 		ostringstream name;
 		name << "ctau_" << vpdl;
 		auto newdir = f->mkdir(name.str().c_str());
-		return calc_it(newdir, vpdl, mBoson, mVPion);
+		cfg._ctau = vpdl;
+		return calc_it(newdir, cfg);
 	},
 		0.0, 5.0, dlDone);
 

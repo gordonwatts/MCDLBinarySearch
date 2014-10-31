@@ -21,9 +21,8 @@ namespace {
 	}
 }
 
-// Assume the pythia config is empty and needs a total
-// setup.
-PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
+// Parse the command line to generate a configuration
+PythiaConfigInfo parseConfig(char *argv[], int argc)
 {
 	PythiaConfigInfo config;
 	config._massBoson = 140;
@@ -68,10 +67,23 @@ PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
 		}
 	}
 
+	return config;
+}
+
+// Given a config, generate a pythia object.
+void configPythia(Pythia8::Pythia &pythia, const PythiaConfigInfo &config)
+{
 	// Configure as needed.
 	configHV(pythia, config._ctau * 1000.0, config._massBoson, config._massVPion, config._beamCOM * 1000);
+}
 
-	return config;
+// Assume the pythia config is empty and needs a total
+// setup.
+PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc)
+{
+	auto cfg = parseConfig(argv, argc);
+	configPythia(pythia, cfg);
+	return cfg;
 }
 
 // create a uniform output filename

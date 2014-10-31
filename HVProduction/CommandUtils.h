@@ -31,6 +31,10 @@ struct PythiaConfigInfo {
 
 std::ostream &operator<< (std::ostream &output, const PythiaConfigInfo &info);
 
+// Parse the command line.
+PythiaConfigInfo parseConfig(char *argv[], int argc);
+void configPythia(Pythia8::Pythia &pythia, const PythiaConfigInfo &info);
+
 // Parse the command line and turn it into
 // a pythia configuration.
 PythiaConfigInfo configHV(Pythia8::Pythia &pythia, char* argv[], int argc);
