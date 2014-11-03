@@ -4,7 +4,7 @@ int tev = 8;
 int mboson = 140;
 int mvpion = 40;
 int ptcut = 60;
-double nsCut = 10.0;
+double nsCut = 5.0;
 
 TString getFilename(int ctau)
 {

@@ -5,10 +5,10 @@ double sumBins (TH1F*p, double edge)
 	return p->Integral(xbin, xmax);
 }
 
-int tev = 13;
+int tev = 8;
 int mboson = 140;
 int mvpion = 40;
-int ptcut = 60;
+int ptcut = 40;
 
 TString getFilename(int ctau)
 {
@@ -33,7 +33,6 @@ TH1F* getPlot (TDirectory *d, int color)
 
 void plotDLProgression ()
 {
-	tev = 8;
 	cout << "Getting files like " << (char *) getFilename(1) << endl;
 	TFile *f1 = TFile::Open(getFilename(1));
 	TFile *f6 = TFile::Open(getFilename(6));
