@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Pythia8.8.186.5\build\native\Pythia8.props" Condition="Exists('..\packages\Pythia8.8.186.5\build\native\Pythia8.props')" />
   <Import Project="..\packages\ROOT.534.20.8\build\native\ROOT.props" Condition="Exists('..\packages\ROOT.534.20.8\build\native\ROOT.props')" />
   <Import Project="..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.props" Condition="Exists('..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.props')" />
-  <Import Project="..\packages\Pythia8.8.186.3\build\native\Pythia8.props" Condition="Exists('..\packages\Pythia8.8.186.3\build\native\Pythia8.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -42,7 +42,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>a1dff2fd</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>5182225a</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,19 +95,19 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Pythia8.8.186.3\build\native\Pythia8.targets" Condition="Exists('..\packages\Pythia8.8.186.3\build\native\Pythia8.targets')" />
     <Import Project="..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.targets" Condition="Exists('..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.targets')" />
     <Import Project="..\packages\ROOT.534.20.8\build\native\ROOT.targets" Condition="Exists('..\packages\ROOT.534.20.8\build\native\ROOT.targets')" />
+    <Import Project="..\packages\Pythia8.8.186.5\build\native\Pythia8.targets" Condition="Exists('..\packages\Pythia8.8.186.5\build\native\Pythia8.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Pythia8.8.186.3\build\native\Pythia8.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pythia8.8.186.3\build\native\Pythia8.props'))" />
-    <Error Condition="!Exists('..\packages\Pythia8.8.186.3\build\native\Pythia8.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pythia8.8.186.3\build\native\Pythia8.targets'))" />
     <Error Condition="!Exists('..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.props'))" />
     <Error Condition="!Exists('..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\PhysicsCPPConfig.1.0.1\build\native\PhysicsCPPConfig.targets'))" />
     <Error Condition="!Exists('..\packages\ROOT.534.20.8\build\native\ROOT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT.534.20.8\build\native\ROOT.props'))" />
     <Error Condition="!Exists('..\packages\ROOT.534.20.8\build\native\ROOT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ROOT.534.20.8\build\native\ROOT.targets'))" />
+    <Error Condition="!Exists('..\packages\Pythia8.8.186.5\build\native\Pythia8.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pythia8.8.186.5\build\native\Pythia8.props'))" />
+    <Error Condition="!Exists('..\packages\Pythia8.8.186.5\build\native\Pythia8.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pythia8.8.186.5\build\native\Pythia8.targets'))" />
   </Target>
 </Project>
